@@ -467,6 +467,40 @@ adb install -r dsh-plugin-subscription-oauth-companion-1.0.0.apk
 
 安装后到插件页「原生插件」确认条目与组件数量。
 
+### 9.3 如何发布、如何打 tag
+
+发布分三件事：JS 插件发 npm、伴生 APK 发 GitHub Release、仓库打
+`dsh-mobile-plugin` topic 让插件商店能发现。
+
+最小流程：
+
+```bash
+# 1) JS 插件
+npm publish --access public
+
+# 2) 伴生 APK tag + Release（资产名以 .apk 结尾）
+git tag -a v1.0.0 -m "dsh-plugin-example companion 1.0.0"
+git push origin v1.0.0
+gh release create v1.0.0 dsh-plugin-example-companion-1.0.0.apk \
+  --title "v1.0.0" --notes "Companion APK for dsh-plugin-example 1.0.0"
+
+# 3) 商店发现 topic
+gh api -X PUT repos/<owner>/<repo>/topics \
+  -f 'names[]=dsh-plugin' \
+  -f 'names[]=dsh-mobile-plugin'
+```
+
+约定：
+
+- tag 用 `v<js-version>` 或 `v<js-version>-native`，例如 `v0.17.17-kimi-native`；
+- 商店只读 **latest release**，不要发成 prerelease；
+- Release 至少要有一个 `.apk` 资产；
+- 更新用新 tag + 新 Release，不要覆盖旧 asset；
+- SDK 仓库自身用 `sdk-v1.0.0` 这类前缀，和插件版本区分。
+
+完整命令、版本对照、签名与更新提醒规则见
+[`docs/publishing.md`](docs/publishing.md)。
+
 ---
 
 ## 10. 发布前检查清单
