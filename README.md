@@ -1,5 +1,8 @@
 # DSH Mobile Native UI SDK
 
+> 仓库：<https://github.com/EricFL1998/dsh-mobile-plugin-sdk>  
+> 在线文档：<https://ericfl1998.github.io/dsh-mobile-plugin-sdk/>（GitHub Pages）
+>
 > 为已有 DSH JS 插件增加一个 **Kotlin/Compose 原生 UI 伴侣 APK**：Host 侧逻辑不动，
 > App 自动识别伴侣 APK，把插件 UI 从 WebView/转译树升级成原生界面。
 >
