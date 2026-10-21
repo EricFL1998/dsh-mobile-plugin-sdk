@@ -1,0 +1,14 @@
+# Build output
+build/
+.gradle/
+.idea/
+*.iml
+.kotlin/
+local.properties
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local artifacts kept out of the SDK repo
+*.log
