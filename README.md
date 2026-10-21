@@ -45,8 +45,11 @@
 ```
 dsh-mobile-plugin-native-ui-sdk/
 ├─ README.md                         ← 本文件
-├─ slot-mapping.md                   ← 30 个官方 slot → 原生落点 → 宿主位置
+├─ slot-mapping.md                   ← 31 个官方 slot → 原生落点 → 宿主位置
 ├─ postmortem/slot-discovery.md     ← 首版漏落点的复盘与覆盖闸门
+├─ demo/                             ← 唯一示例：虚构 Demo 插件（覆盖全部落点）
+│  ├─ README.md
+│  └─ native/                        ← Manifest + Kotlin 源码
 ├─ docs/
 │  ├─ native-plugin-sdk.md           ← 插件侧完整规范
 │  ├─ native-plugin-host.md          ← App 侧宿主容器与注册表
@@ -57,11 +60,11 @@ dsh-mobile-plugin-native-ui-sdk/
 │  └─ pitfalls.md                    ← 踩坑清单（slot/装载/RPC/定位/样式/proot）
 ├─ reference/native-host/            ← App 侧 OfficialSlot / NativeSlotHost 参考
 ├─ sdk/                              ← SDK 源码与独立构建配置
-├─ artifacts/dsh-native-ui-sdk-release.aar
-└─ samples/
-   ├─ kimi-native/                   ← composer dock 示例
-   └─ subscription-native/           ← 设置页整页示例
+└─ artifacts/dsh-native-ui-sdk-release.aar
 ```
+
+> 仓库不打包真实插件示例；`demo/` 是虚构案例。订阅插件的伴生 APK
+> 通过 GitHub Releases 分发。
 
 ---
 
@@ -112,11 +115,36 @@ plugins {
 
 ## 3. 伴侣 APK 最小实现
 
+### 3.0 包名规范（强制）
+
+伴侣 APK 的 `applicationId` 和 `namespace` 统一使用：
+
+```
+com.dsh.mobile.<完整插件名>
+```
+
+“完整插件名”取 JS `package.json` 的 `name`，**保留 `dsh-plugin-` 前缀**，转小写，
+非 `[a-z0-9]` 字符替换成 `_`：
+
+| JS 插件完整名 | 伴侣包名 |
+| --- | --- |
+| `dsh-plugin-subscription-oauth` | `com.dsh.mobile.dsh_plugin_subscription_oauth` |
+| `dsh-plugin-my-plugin` | `com.dsh.mobile.dsh_plugin_my_plugin` |
+| `dsh-genui` | `com.dsh.mobile.dsh_genui` |
+
+规则细节：
+
+- 不要缩写成 `com.dsh.mobile.subscription`；`dsh-plugin-` 也是插件名的一部分；
+- 同一 JS 包有多个能力伴侣时，主伴侣用全名，额外能力加 `_<capability>`，
+  例如 Kimi 能力：`com.dsh.mobile.dsh_plugin_subscription_oauth_kimi`；
+- `dsh.plugin.id` 是插件身份，和包名解耦，仍然使用你的反向域名 id；
+- 包名一旦发布不要改，否则会被系统当成另一个 APK。
+
 ### 3.1 AndroidManifest
 
 ```xml
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.myplugin.nativeui">
+    package="com.dsh.mobile.dsh_plugin_my_plugin">
 
     <application>
         <service
@@ -352,16 +380,13 @@ App → 抽屉 → **Plugin Market & Ecosystem → 插件 → 添加插件**，�
 
 ### 7.2 再装伴侣 APK
 
-```bash
-# 在 App 仓库中构建示例
-./gradlew :samples:kimi-native:assembleDebug
+从 GitHub Releases 下载伴生 APK（首个发布见第 9 节），或安装你自己构建的 APK：
 
-# 安装到设备
-adb install -r samples/kimi-native/build/outputs/apk/debug/kimi-native-debug.apk
+```bash
+adb install -r dsh-plugin-subscription-oauth-companion-1.0.0.apk
 ```
 
-也可以直接安装你自己的伴侣 APK。安装/卸载后回到 App 前台会触发重扫
-（App `onResume` + PackageManager 广播）。
+安装/卸载后回到 App 前台会触发重扫（App `onResume` + PackageManager 广播）。
 
 ### 7.3 验证
 
@@ -409,19 +434,34 @@ adb shell run-as com.dsh.mobile cat files/logs/host_<最新>.log
 
 ---
 
-## 9. 示例
+## 9. Demo 插件与伴生 APK 发布
 
-- `samples/kimi-native`：`COMPOSER_DOCK` 用量胶囊 + OAuth 授权码展示；
-- `samples/subscription-native`：设置页整页订阅管理（账号、模型、额度）。
+### 9.1 Demo 插件（唯一示例）
 
-在 App 仓库中构建：
+`demo/native` 是一个**虚构的 Demo 插件**，不对应任何真实业务：
+
+- 包名 `com.dsh.mobile.dsh_plugin_demo`；
+- 设置页 `PageContent`；
+- 21 个 `NativeSlot` 全部注册演示贡献；
+- dock 使用 `PluginPopover` 展示贴锚点、App 菜单材质；
+- 所有数据都是本地假数据，不联网、不登录。
+
+详见 [`demo/README.md`](demo/README.md)。
+
+### 9.2 首个伴生 APK
+
+订阅插件的首个伴生 APK 通过 GitHub Releases 分发：
+
+- Release：<https://github.com/EricFL1998/dsh-mobile-plugin-sdk/releases/tag/v1.0.0>
+- 资产：`dsh-plugin-subscription-oauth-companion-1.0.0.apk`
+- 包名：`com.dsh.mobile.dsh_plugin_subscription_oauth`
+- 签名：debug（首个测试版；正式分发前换 release keystore）
 
 ```bash
-./gradlew :samples:kimi-native:assembleDebug
-./gradlew :samples:subscription-native:assembleDebug
+adb install -r dsh-plugin-subscription-oauth-companion-1.0.0.apk
 ```
 
-示例只保留 `src/main`；Gradle 构建脚本使用 App 仓库的版本目录。
+安装后到插件页「原生插件」确认条目与组件数量。
 
 ---
 

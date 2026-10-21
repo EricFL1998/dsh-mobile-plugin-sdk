@@ -6,8 +6,8 @@
 > SDK 坐标：`com.deepseek.dsh:dsh-native-sdk` · ABI 版本 `1`。
 > 更新：2026-10-21（页面接管、Host RPC 与生命周期经真实订阅插件验证）。
 >
-> **自证**：`samples/genui-native`、`samples/kimi-native` 与
-> `samples/subscription-native` 均可编译打包。订阅伴生已在模拟器验证原生页面接管、
+> **自证**：`demo/native` 与
+> `demo/native` 均可编译打包。订阅伴生已在模拟器验证原生页面接管、
 > Provider 展开与管理、Host RPC、返回导航及卸载即时回退；它是设置页迁移的完整参照。
 
 ## 目录
@@ -97,7 +97,7 @@ your-plugin-native/             ← 新增 Android 工程
 ### 3.2 AndroidManifest.xml（基础契约 + JS 配对）
 
 ```xml
-<manifest package="com.example.yourplugin.native">
+<manifest package="com.dsh.mobile.dsh_plugin_your_plugin">
 
     <!-- 入口服务：发现、ABI 校验、静态工厂加载及 JS 插件配对都在 service 级声明 -->
     <service
@@ -377,7 +377,7 @@ rpc?.callRpc("your-plugin.status", JsonObject(emptyMap())) { result ->
 
 Provider 展开/收起、账号管理、模型显示与排序、授权轮询、迟到响应防护等完整实现，见
 [JS UI 转原生 UI 实战指南](plugin-conversion-guide.md) 与
-`samples/subscription-native/src/main/kotlin/com/example/subscription/nativeui/SubscriptionSettingsPage.kt`。
+`demo/native/src/main/kotlin/com/dsh/mobile/dsh_plugin_demo/DemoSettingsPage.kt`。
 不要只迁移卡片外壳：展开区、按钮动作、空态与错误态都属于迁移范围。
 
 ---

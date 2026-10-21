@@ -1,7 +1,7 @@
 # JS UI 转原生 UI：伴侣 APK 实战指南
 
 > 状态：**经真实订阅插件与模拟器验证**。本文以 `dsh-plugin-subscription-oauth` 和
-> `samples/subscription-native` 为例，说明如何把已有 React/Web 设置页迁移为
+> `demo/native` 为例，说明如何把已有 React/Web 设置页迁移为
 > Kotlin/Compose 原生页面，同时保留完整 Web 回退。
 > 前置阅读：[SDK 总览与 API](plugin-sdk-guide.md)。
 > 更新：2026-10-21（补充 ClassLoader、页面配对、Host RPC、复杂交互和卸载回退）。
@@ -112,10 +112,10 @@ plugins {
 }
 
 android {
-    namespace = "com.example.yourplugin.nativeui" // 不要用 Java 关键字 native
+    namespace = "com.dsh.mobile.dsh_plugin_your_pluginui" // 不要用 Java 关键字 native
     compileSdk = 35
     defaultConfig {
-        applicationId = "com.example.yourplugin.nativeui"
+        applicationId = "com.dsh.mobile.dsh_plugin_your_pluginui"
         minSdk = 26
         versionCode = 1
         versionName = "1.0.0"
@@ -168,7 +168,7 @@ meta-data 必须放在 **Service 级**：
 
 ```xml
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.subscription.nativeui">
+    package="com.dsh.mobile.dsh_plugin_subscription_oauth">
     <application>
         <service
             android:name=".SubscriptionPluginService"
@@ -460,7 +460,7 @@ rpc.callRpc("subscription-oauth.status", JsonObject(emptyMap())) { result ->
 ### 构建与静态检查
 
 ```bash
-./gradlew :samples:subscription-native:assembleDebug
+./gradlew :samples:demo:assembleDebug
 ./gradlew :app:assembleDebug
 ./gradlew :plugin:native-host:testDebugUnitTest
 ```
@@ -472,7 +472,7 @@ rpc.callRpc("subscription-oauth.status", JsonObject(emptyMap())) { result ->
 ```bash
 adb -s emulator-5554 install -r app/build/outputs/apk/debug/app-debug.apk
 adb -s emulator-5554 install -r \
-  samples/subscription-native/build/outputs/apk/debug/subscription-native-debug.apk
+  demo/native/build/outputs/apk/debug/demo-debug.apk
 adb -s emulator-5554 shell am start -n \
   com.dsh.mobile/com.deepseek.dsh.MainActivity
 ```
@@ -509,4 +509,4 @@ adb -s emulator-5554 shell am start -n \
 | 在主线程扫描/安装 | 启动掉帧、页面卡顿 | PackageManager、反射和安装放 IO，主线程发布快照 |
 | 拿编译通过当功能完成 | 原生页能开但按钮无效 | 真机逐项点击，并验证 RPC 与回退 |
 
-完整参照实现：`samples/subscription-native`；路由与生命周期宿主：`plugin/native-host`。
+完整参照实现：`demo/native`；路由与生命周期宿主：`plugin/native-host`。
