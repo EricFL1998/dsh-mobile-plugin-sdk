@@ -117,6 +117,10 @@ plugins {
 
 ### 3.0 包名规范（强制）
 
+> **一个 JS 插件 = 一个 companion APK。** 包括余额鲸鱼这类“Web 注入式浮层”：
+> 也写 companion，通过 `NativeSlot.PLUGIN_OVERLAY` 画浮层，不在 App 里为单个插件
+> 增加 `WEB_OVERLAY` 之类的特例。宿主只提供安全区全屏画布，位置/拖动/吸附/动画
+> 由 companion 自己负责。
 伴侣 APK 的 `applicationId` 和 `namespace` 统一使用：
 
 ```
