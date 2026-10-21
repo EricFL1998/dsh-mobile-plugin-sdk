@@ -18,8 +18,9 @@
 ## 覆盖的插入方式
 
 - **PageContent**：`DemoSettingsPage`，设置页出现「Demo 插件」入口；
-- **全部 NativeSlot**：`DemoSlots.entries` 列出 21 个落点，`DemoSlotContribution`
-  逐个注册；dock 单独由 `DemoDockContribution` 展示 popup；
+- **NativeSlot**：`DemoSlots.entries` 列出 21 个落点；其中 18 个已注入，
+  `SESSION_HEADER_CORNER`、`COMPOSER_OVERLAY`、`PLUGIN_OVERLAY`、`WEB_ISLAND_FULL`
+  当前宿主位置不成立，Demo 页标为「宿主待修」，不向真实界面注入；
 - **PluginPopover**：点击 dock 的 `Demo 42%` 胶囊，浮层贴着胶囊上方、右对齐，
   材质来自 `PluginTheme` 的 popup 字段（App `DshMenuCard` 映射）；
 - **ComponentRenderer**：`DemoRenderer` 演示 Host 卡片渲染入口。
