@@ -53,7 +53,8 @@ dsh-mobile-plugin-native-ui-sdk/
 │  ├─ plugin-conversion-guide.md     ← Web UI 迁移到原生 UI
 │  ├─ plugin-sdk-guide.md            ← 开发与联调步骤
 │  ├─ mobile-bridge.md               ← Host ↔ App bridge 协议
-│  └─ slot-inventory.md              ← 自动生成的官方 slot 覆盖清单
+│  ├─ slot-inventory.md              ← 自动生成的官方 slot 覆盖清单
+│  └─ pitfalls.md                    ← 踩坑清单（slot/装载/RPC/定位/样式/proot）
 ├─ reference/native-host/            ← App 侧 OfficialSlot / NativeSlotHost 参考
 ├─ sdk/                              ← SDK 源码与独立构建配置
 ├─ artifacts/dsh-native-ui-sdk-release.aar
@@ -504,3 +505,6 @@ App 开发仓库另有 `tools/official_ui_inventory.py`，用于锁定官方 slo
 第三方环境可 `--rootfs <已安装 rootfs>` 运行，同样不需要 upstream 目录。
 
 截图只用于视觉验收，不再作为发现 UI 的来源。
+
+接入前/踩坑时先看 `docs/pitfalls.md`：slot 空白、伴侣装载失败、RPC 401、
+popup 定位/材质、proot bash、扫描器漏项等都有现象/根因/修复记录。
