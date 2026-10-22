@@ -1,5 +1,7 @@
 # JS UI 转原生 UI：伴侣 APK 实战指南
 
+> 中文 | [English](plugin-conversion-guide.en.md)
+
 > 状态：**以 Demo 插件为完整参照实现**。本文以 `dsh-plugin-demo`（Web 半边
 > `demo/js`）和 `demo/native`（Kotlin/Compose 伴生 APK）为例，
 > 说明如何把已有 React/Web 设置页与 dock 迁移为原生页面/落点，同时保留完整 Web

@@ -1,5 +1,7 @@
 # DSH Mobile Bridge (generic client-compatibility layer)
 
+> 中文 | [English](mobile-bridge.en.md)
+
 > **Status: implemented.** The Host plugin lives in its own repository,
 > [`deepseek-harness-mobile-bridge-plugin`](https://github.com/EricFL1998/deepseek-harness-mobile-bridge-plugin)
 > (`dsh-mobile-bridge-plugin`); this document is the design it implements, and

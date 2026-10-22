@@ -1,5 +1,7 @@
 # 源码驱动的原生 UI 接入流程
 
+> 中文 | [English](source-driven-native-ui.en.md)
+
 > 本文给出固定流程：先用扫描器读插件自己的包，得到 UI 清单与缺口，再选择
 > `PageContent` / `SlotContribution` / `OfficialSlot` / dsh-ui spec 实现。
 > 完整示例是 Demo 插件：Web 半边 `demo/js`，伴生 APK `demo/native`。

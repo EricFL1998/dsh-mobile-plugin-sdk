@@ -1,5 +1,7 @@
 # 原生插件宿主接口（App 侧开发规范）
 
+> 中文 | [English](native-plugin-host.en.md)
+
 > 状态：**提案（待评审）**。本文定义 App 为支持「原生 UI 插件商店」要开发的全部通用接口与模块。
 > 适用对象：App（`com.dsh.mobile`）开发团队。
 > 关联文档：[插件侧 SDK 规范](native-plugin-sdk.md)、[移动 bridge 协议](mobile-bridge.md)。

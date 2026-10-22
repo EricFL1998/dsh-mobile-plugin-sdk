@@ -1,5 +1,7 @@
 # DSH 原生插件 SDK 开发者文档
 
+> 中文 | [English](plugin-sdk-guide.en.md)
+
 > 状态：**已自证（Demo 样例测试与扫描通过；伴生 APK 构建步骤见 [demo/README](../demo/README.md)）**。本文是原生插件（伴侣 APK）的完整开发指南。
 > 适用对象：想为 DSH 手机 App 提供原生（Kotlin/Compose）UI 的插件开发者。
 > 关联文档：[JS UI 转原生 UI 实战指南](plugin-conversion-guide.md)、[插件侧 SDK 规范](native-plugin-sdk.md)、[App 侧宿主接口](native-plugin-host.md)、[Demo 插件（JS 半边）](../demo/js/README.md)、[Demo 插件目录](../demo/README.md)、[插件 UI 清单示例](plugin-ui-inventory-example.md)、[文档站案例](index.html#case)。

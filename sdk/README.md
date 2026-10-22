@@ -1,5 +1,7 @@
 # 源码接入
 
+> 中文 | [English](README.en.md)
+
 本目录是 Native UI SDK（API v1）的源码与独立构建配置，包名
 `com.deepseek.dsh.plugin.nativesdk`。
 

@@ -1,5 +1,7 @@
 # Demo 插件（JS 半边）
 
+> 中文 | [English](README.en.md)
+
 SDK 的**接入案例**：一个真实的 npm 插件包，与 [`demo/native`](../native)
 （Kotlin/Compose 伴生 APK）配对。它把「JS 插件 + 原生 UI」的完整链路缩小到可读的
 几百行代码，演示：

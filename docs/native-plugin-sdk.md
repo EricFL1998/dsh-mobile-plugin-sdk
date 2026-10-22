@@ -1,5 +1,7 @@
 # 原生插件 SDK 规范（插件侧契约）
 
+> 中文 | [English](native-plugin-sdk.en.md)
+
 > 状态：**提案（待评审）**。本文定义「原生 UI 插件商店」体系里第三方开发者要遵守的全部契约；文中示例统一使用仓库里的 Demo 插件。
 > 适用对象：想为 DSH 手机 App 提供原生（Kotlin/Compose）UI 的插件开发者。
 > 关联文档：[JS UI 转原生 UI 实战指南](plugin-conversion-guide.md)、[SDK 开发指南](plugin-sdk-guide.md)、[App 侧宿主接口](native-plugin-host.md)、[移动 bridge 协议](mobile-bridge.md)、[Demo 插件（JS 半边）](../demo/js/README.md)、[Demo 插件目录](../demo/README.md)、[插件 UI 清单示例](plugin-ui-inventory-example.md)、[文档站案例](index.html#case)。

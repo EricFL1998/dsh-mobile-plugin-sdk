@@ -1,0 +1,1001 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DSH Native UI Integration · Source-Driven Workflow</title>
+<meta name="description" content="DSH Mobile Native UI SDK: scan plugin source for slots, components, RPC and gaps, then complete and verify the native UI integration.">
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --surface: #ffffff;
+    --surface-2: #eef1f5;
+    --text: #17202a;
+    --muted: #5f6b7a;
+    --line: #dde3ea;
+    --accent: #3b6ef6;
+    --accent-soft: #e8efff;
+    --green: #14805e;
+    --green-soft: #e5f6ef;
+    --amber: #9a6200;
+    --amber-soft: #fff4dd;
+    --red: #b42318;
+    --red-soft: #fdecea;
+    --code-bg: #0f1720;
+    --code-text: #dbe7f3;
+    --radius: 14px;
+    --shadow: 0 1px 2px rgba(16, 24, 40, .05), 0 8px 24px rgba(16, 24, 40, .06);
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  html[data-theme="dark"] {
+    --bg: #0e1218;
+    --surface: #151b23;
+    --surface-2: #1c2430;
+    --text: #e7edf5;
+    --muted: #98a5b5;
+    --line: #283341;
+    --accent: #7ea2ff;
+    --accent-soft: #1b2a4a;
+    --green: #67d7ae;
+    --green-soft: #15342a;
+    --amber: #f0c36d;
+    --amber-soft: #3a2d12;
+    --red: #ff8d82;
+    --red-soft: #3d1c1a;
+    --code-bg: #0a0f14;
+    --code-text: #d8e5f0;
+    --shadow: 0 1px 2px rgba(0,0,0,.5), 0 8px 24px rgba(0,0,0,.35);
+  }
+  @media (prefers-color-scheme: dark) {
+    html[data-theme="auto"] {
+      --bg: #0e1218; --surface: #151b23; --surface-2: #1c2430; --text: #e7edf5;
+      --muted: #98a5b5; --line: #283341; --accent: #7ea2ff; --accent-soft: #1b2a4a;
+      --green: #67d7ae; --green-soft: #15342a; --amber: #f0c36d; --amber-soft: #3a2d12;
+      --red: #ff8d82; --red-soft: #3d1c1a; --code-bg: #0a0f14; --code-text: #d8e5f0;
+      --shadow: 0 1px 2px rgba(0,0,0,.5), 0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text); font-family: var(--sans);
+    font-size: 16px; line-height: 1.72; -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code, pre { font-family: var(--mono); }
+  :not(pre) > code {
+    background: var(--surface-2); border: 1px solid var(--line);
+    padding: .12em .38em; border-radius: 6px; font-size: .9em;
+  }
+  header.topbar {
+    position: sticky; top: 0; z-index: 40; backdrop-filter: blur(14px);
+    background: color-mix(in srgb, var(--bg) 78%, transparent);
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar-inner {
+    max-width: 1320px; margin: 0 auto; padding: 12px 24px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -.01em; }
+  .brand-mark {
+    width: 30px; height: 30px; border-radius: 9px; flex: none;
+    background: linear-gradient(135deg, var(--accent), #9d6bff);
+    display: grid; place-items: center; color: #fff; font-size: 15px;
+  }
+  .brand small { display: block; font-weight: 500; color: var(--muted); font-size: 11px; letter-spacing: .04em; }
+  .topnav { display: flex; gap: 4px; margin-left: auto; align-items: center; }
+  .topnav a { color: var(--muted); font-size: 13px; padding: 6px 10px; border-radius: 8px; }
+  .topnav a:hover { background: var(--surface-2); color: var(--text); text-decoration: none; }
+  .icon-btn {
+    border: 1px solid var(--line); background: var(--surface); color: var(--text);
+    width: 34px; height: 34px; border-radius: 9px; cursor: pointer; display: grid; place-items: center;
+  }
+  .icon-btn:hover { background: var(--surface-2); }
+  #menuBtn { display: none; }
+  .layout {
+    max-width: 1320px; margin: 0 auto; display: grid;
+    grid-template-columns: 248px minmax(0, 1fr); gap: 44px; padding: 30px 24px 80px;
+  }
+  aside.toc {
+    position: sticky; top: 76px; align-self: start; max-height: calc(100vh - 100px);
+    overflow: auto; padding-right: 6px; font-size: 13px;
+  }
+  .toc-title { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 4px 0 10px 10px; }
+  .toc a {
+    display: block; padding: 6px 10px; color: var(--muted); border-radius: 8px;
+    border-left: 2px solid transparent; line-height: 1.45;
+  }
+  .toc a:hover { background: var(--surface-2); color: var(--text); text-decoration: none; }
+  .toc a.active { color: var(--accent); background: var(--accent-soft); border-left-color: var(--accent); }
+  main { min-width: 0; }
+  section { margin-bottom: 58px; scroll-margin-top: 90px; }
+  .hero {
+    padding: 42px 38px; border-radius: 22px; border: 1px solid var(--line);
+    background:
+      radial-gradient(900px 300px at 12% -10%, var(--accent-soft), transparent 60%),
+      radial-gradient(700px 300px at 95% 0%, var(--green-soft), transparent 55%),
+      var(--surface);
+    box-shadow: var(--shadow); min-width: 0;
+  }
+  .eyebrow { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); font-weight: 700; }
+  h1 { font-size: clamp(30px, 4.2vw, 46px); line-height: 1.16; letter-spacing: -.03em; margin: 10px 0 14px; }
+  .lede { font-size: 18px; line-height: 1.7; color: var(--muted); max-width: 760px; margin: 0 0 22px; }
+  .badges { display: flex; flex-wrap: wrap; gap: 8px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600;
+    border-radius: 999px; padding: 5px 11px; background: var(--surface-2); color: var(--muted);
+    border: 1px solid var(--line); max-width: 100%; white-space: normal; overflow-wrap: anywhere;
+  }
+  .badge.accent { background: var(--accent-soft); color: var(--accent); border-color: color-mix(in srgb, var(--accent) 25%, transparent); }
+  .badge.green { background: var(--green-soft); color: var(--green); }
+  h2 { font-size: 26px; letter-spacing: -.02em; line-height: 1.3; margin: 0 0 8px; }
+  h3 { font-size: 19px; letter-spacing: -.01em; margin: 28px 0 8px; }
+  .section-head { margin-bottom: 18px; }
+  .section-head p { color: var(--muted); margin: 0; max-width: 820px; }
+  h2 .num {
+    display: inline-grid; place-items: center; width: 26px; height: 26px; margin-right: 8px;
+    border-radius: 8px; background: var(--accent-soft); color: var(--accent); font-size: 13px;
+    vertical-align: 3px; font-family: var(--mono);
+  }
+  p { margin: 10px 0; }
+  ul, ol { padding-left: 22px; margin: 10px 0; }
+  li { margin: 5px 0; }
+  .grid { display: grid; gap: 14px; }
+  .grid.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 18px; box-shadow: var(--shadow);
+  }
+  .card h3 { margin: 0 0 6px; font-size: 16px; }
+  .card p { margin: 0; color: var(--muted); font-size: 14px; }
+  .card .kicker { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); font-weight: 700; margin-bottom: 6px; }
+  .callout {
+    border: 1px solid var(--line); border-left: 4px solid var(--accent);
+    background: var(--surface); border-radius: 10px; padding: 14px 16px; margin: 16px 0;
+  }
+  .callout.warn { border-left-color: var(--amber); background: var(--amber-soft); }
+  .callout.good { border-left-color: var(--green); background: var(--green-soft); }
+  .callout.bad { border-left-color: var(--red); background: var(--red-soft); }
+  .callout strong { display: block; margin-bottom: 3px; }
+  .callout p { margin: 0; }
+  .callout.warn p, .callout.warn li, .callout.bad p { color: var(--text); }
+  .flow {
+    display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin: 18px 0 6px;
+  }
+  .flow .step {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 14px 12px; position: relative; box-shadow: var(--shadow);
+  }
+  .flow .step:not(:last-child)::after {
+    content: "→"; position: absolute; right: -12px; top: 50%; transform: translateY(-50%);
+    color: var(--muted); font-weight: 700; z-index: 2;
+  }
+  .flow .idx {
+    width: 22px; height: 22px; border-radius: 7px; background: var(--accent-soft); color: var(--accent);
+    display: grid; place-items: center; font: 700 12px var(--mono); margin-bottom: 8px;
+  }
+  .flow .step b { display: block; font-size: 13px; line-height: 1.4; }
+  .flow .step span { font-size: 12px; color: var(--muted); line-height: 1.45; display: block; margin-top: 3px; }
+  .code-wrap { position: relative; margin: 14px 0; }
+  pre {
+    margin: 0; background: var(--code-bg); color: var(--code-text); border-radius: 12px;
+    padding: 18px 18px; overflow: auto; font-size: 13px; line-height: 1.7;
+    border: 1px solid color-mix(in srgb, var(--code-bg) 60%, #fff 8%);
+  }
+  pre .cmt { color: #7c93a8; }
+  pre .cmd { color: #8fd6ff; }
+  pre .flag { color: #ffd479; }
+  pre .str { color: #a8e6a3; }
+  .copy {
+    position: absolute; top: 9px; right: 9px; border: 1px solid #2b3a4a;
+    background: #16212d; color: #a9bfd3; border-radius: 7px; padding: 4px 9px;
+    font: 600 11px var(--sans); cursor: pointer;
+  }
+  .copy:hover { color: #fff; border-color: #45607a; }
+  .table-wrap { overflow: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; min-width: 620px; }
+  th, td { text-align: left; padding: 11px 13px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: var(--surface-2); font-size: 12px; letter-spacing: .03em; color: var(--muted); font-weight: 700; }
+  tr:last-child td { border-bottom: 0; }
+  td code { white-space: nowrap; }
+  .pill { display: inline-block; font-size: 11px; font-weight: 700; border-radius: 999px; padding: 2px 8px; white-space: nowrap; }
+  .pill.ok { background: var(--green-soft); color: var(--green); }
+  .pill.part { background: var(--amber-soft); color: var(--amber); }
+  .pill.no { background: var(--red-soft); color: var(--red); }
+  .tree {
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.65; color: var(--muted);
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px;
+    overflow: auto; white-space: pre;
+  }
+  .tree b { color: var(--text); font-weight: 600; }
+  details {
+    border: 1px solid var(--line); background: var(--surface); border-radius: 10px;
+    padding: 12px 16px; margin: 10px 0;
+  }
+  summary { cursor: pointer; font-weight: 600; }
+  details p { color: var(--muted); font-size: 14px; }
+  .toc-mobile { display: none; }
+  footer {
+    border-top: 1px solid var(--line); color: var(--muted); font-size: 13px;
+    padding: 26px 24px 40px; text-align: center;
+  }
+  .anchor { color: var(--muted); font-weight: 400; margin-left: 6px; opacity: 0; font-size: .8em; }
+  h2:hover .anchor, h3:hover .anchor { opacity: 1; }
+  .kbd { border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 1px 5px; font: 600 11px var(--mono); background: var(--surface-2); }
+  .mini { font-size: 12.5px; color: var(--muted); }
+  .agent-prompt {
+    border: 1px solid var(--line); border-radius: 16px; background: var(--surface);
+    padding: 16px 18px; margin: 0 0 22px; box-shadow: var(--shadow);
+  }
+  .agent-prompt-head { font-weight: 700; font-size: 15px; margin-bottom: 2px; }
+  .agent-prompt-head .mini { display: block; font-weight: 400; margin-top: 3px; }
+  .agent-prompt pre { max-height: 340px; }
+  .prompt-lang { font-size: 12px; font-weight: 700; color: var(--accent); margin: 12px 0 4px; }
+  .hr { height: 1px; background: var(--line); margin: 26px 0; }
+  @media (max-width: 1080px) {
+    .layout { grid-template-columns: 1fr; gap: 0; padding-top: 18px; }
+    aside.toc { display: none; }
+    #menuBtn { display: grid; }
+    .toc-mobile { display: block; }
+    .toc-mobile summary { font-size: 13px; }
+    .toc-mobile .toc { position: static; max-height: none; padding: 8px 0; }
+    .topnav a { display: none; }
+    .flow { grid-template-columns: 1fr; }
+    .flow .step:not(:last-child)::after { content: "↓"; right: 16px; top: auto; bottom: -14px; transform: none; }
+    .grid.cols-2, .grid.cols-3 { grid-template-columns: 1fr; }
+    .hero { padding: 30px 22px; }
+  }
+  @media (max-width: 520px) {
+    .topbar-inner { padding: 10px 14px; }
+    .layout { padding-left: 14px; padding-right: 14px; }
+    h2 { font-size: 22px; }
+    h1 { font-size: 30px; }
+    .lede { font-size: 16px; }
+  }
+  @media print {
+    header.topbar, aside.toc, .copy, .anchor { display: none !important; }
+    .layout { display: block; padding: 0; }
+    .hero { box-shadow: none; }
+    pre { white-space: pre-wrap; }
+  }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-mark">UI</span>
+      <span>DSH Native UI<small>Source-driven integration workflow</small></span>
+    </div>
+    <nav class="topnav">
+      <a href="#overview">Overview</a>
+      <a href="#scan">Scan</a>
+      <a href="#implement">Implement</a>
+      <a href="#case">Case study</a>
+      <a href="#publish">Publish</a>
+      <a href="#ui">UI guideline</a>
+      <a href="https://github.com/EricFL1998/deepseek-harness-mobile" target="_blank" rel="noopener">GitHub ↗</a>
+      <a href="index.html">中文</a>
+    </nav>
+    <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle theme">◐</button>
+    <button class="icon-btn" id="menuBtn" title="Contents" aria-label="Contents">☰</button>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-title">Contents</div>
+    <a href="#overview">Overview</a>
+    <a href="#principles">Principles, architecture, and inputs</a>
+    <a href="#scan">Scan and report</a>
+    <a href="#implement">Implementation, capabilities, and slots</a>
+    <a href="#case">Demo plugin integration case</a>
+    <a href="#validation">Validation, launch checks, and operating notes</a>
+    <a href="#publish">Publishing and store discovery</a>
+    <a href="#ui">UI design guideline</a>
+    <a href="#files">File layout and versions</a>
+  </aside>
+
+  <main>
+<div class="agent-prompt">
+  <div class="agent-prompt-head">Throw this prompt to an agent:<span class="mini">Paste it, then replace the 【】/[] placeholders</span></div>
+  <div class="prompt-lang">Chinese prompt</div>
+  <div class="code-wrap">
+    <button class="copy">Copy</button>
+    <pre id="agent-prompt">你是一个 DSH 原生 UI 插件开发 agent。请为我的插件编写伴生 APK：
+
+插件仓库：【owner/repo 或本地路径】
+JS 包名：【package.json 里的 name】
+
+按以下步骤执行：
+1. 阅读 SDK 接入文档：https://ericfl1998.github.io/dsh-mobile-plugin-sdk/ 与 https://github.com/EricFL1998/dsh-mobile-plugin-sdk
+2. 克隆 SDK 仓库到本地，在插件包根目录运行扫描器：
+   python tools/plugin_ui_scanner.py --plugin 【插件包路径】 --check
+3. 根据扫描报告的 slot / entry / component / RPC 选择实现方式：
+   整页用 PageContent，局部落点用 SlotContribution 或 dsh-ui spec。
+4. 设置页使用 SDK 的 DshPanel / DshSectionLabel / DshPanelRow / DshButton / DshSwitchRow；
+   颜色、字号、圆角全部从 PluginTheme 读取，禁止 Material Card/Button 和硬编码色值。
+5. 原生只做 UI：数据通过 PluginRpcHost 调 JS 侧 RPC，用户动作通过 host.dispatchEvent 回传；
+   Web UI 必须保持可用，原生只是增强。
+6. 伴生 manifest 写 dsh.plugin.jsPackage / dsh.plugin.id / apiVersion / minAppVersion；
+   先构建 debug APK，在 App 上验证页面、落点、RPC 与事件闭环。
+7. 发布：GitHub Release tag + .apk 资产，仓库加 topic dsh-mobile-plugin，
+   等商店索引刷新（约 30 分钟）。
+
+完成后输出：新增/修改文件、使用的 slot、RPC 列表、构建命令、APK 路径、未验证项。</pre>
+  </div>
+  <div class="prompt-lang">English prompt</div>
+  <div class="code-wrap">
+    <button class="copy">Copy</button>
+    <pre id="agent-prompt-en">You are a DSH native UI plugin development agent. Write a companion APK for my plugin:
+
+Plugin repo: [owner/repo or local path]
+JS package name: [name from package.json]
+
+Steps:
+1. Read the SDK docs: https://ericfl1998.github.io/dsh-mobile-plugin-sdk/ and https://github.com/EricFL1998/dsh-mobile-plugin-sdk
+2. Clone the SDK repo locally and run the scanner in the plugin package root:
+   python tools/plugin_ui_scanner.py --plugin [plugin package path] --check
+3. Based on the scan report's slot / entry / component / RPC, choose an implementation:
+   PageContent for a full page, SlotContribution or dsh-ui spec for a slot.
+4. Settings pages must use the SDK's DshPanel / DshSectionLabel / DshPanelRow / DshButton /
+   DshSwitchRow. Read colors, font sizes and radii from PluginTheme; no Material Card/Button
+   and no hardcoded values.
+5. Native is UI only: fetch data through PluginRpcHost RPC, send user actions via
+   host.dispatchEvent, and keep the Web UI fully functional.
+6. Companion manifest: dsh.plugin.jsPackage / dsh.plugin.id / apiVersion / minAppVersion.
+   Build a debug APK first and verify pages, slots, RPC and event flow on the App.
+7. Publish: GitHub Release tag + .apk asset, add the dsh-mobile-plugin topic, then wait
+   about 30 minutes for the store index to refresh.
+
+Output: files added/changed, slots used, RPC list, build command, APK path, unverified items.</pre>
+  </div>
+</div>
+<section id="overview" class="hero">
+      <div class="eyebrow">DSH Mobile · Native UI SDK</div>
+      <h1>Start from the plugin source,<br>and finish the native UI in one pass</h1>
+      <p class="lede">
+        Start from the plugin's own source and get the slots, entries, components, RPC methods,
+        UI tree and gaps automatically — then follow a fixed path into native pages, slots,
+        or dsh-ui specs.
+      </p>
+      <div class="badges">
+        <span class="badge accent">Scanner v1</span>
+        <span class="badge green">31 built-in slots · every slot mapped</span>
+        <span class="badge">PageContent / SlotContribution / OfficialSlot / SpecRenderer</span>
+        <span class="badge">Static site on GitHub Pages</span>
+      </div>
+    </section>
+
+    <section id="principles">
+      <div class="section-head">
+        <h2><span class="num">01</span>Integration principles, architecture, and inputs<a class="anchor" href="#principles">#</a></h2>
+        <p>Three hard rules, the responsibility boundary between Host, App and companion APK, and the inputs to prepare before you start.</p>
+      </div>
+      <h3>Integration principles<a class="anchor" href="#principles">#</a></h3>
+<p>Get the complete inventory first, then implement item by item; every step has a re-runnable check.</p><div class="grid cols-3">
+        <div class="card">
+          <div class="kicker">1 · Inventory first</div>
+          <h3>Scan the source, get the mount points</h3>
+          <p>Scan the slots, entries, and components the plugin registers plus its data dependencies, and produce an actionable report.</p>
+        </div>
+        <div class="card">
+          <div class="kicker">2 · Then implement</div>
+          <h3>Pick the container by shape</h3>
+          <p>Use <code>PageContent</code> for a full page and <code>SlotContribution</code> for an embedded position;
+          data flows through <code>PluginRpcHost</code>, interactions through <code>dispatchEvent</code>.</p>
+        </div>
+        <div class="card">
+          <div class="kicker">3 · Re-runnable</div>
+          <h3>2/2 slots verifiable</h3>
+          <p>Re-run <code>--check</code> after finishing each slot; both Demo plugin slots are mapped,
+          hosted, and companion-implemented, so they can be regressed anytime.</p>
+        </div>
+      </div>
+      <div class="callout good">
+        <strong>Best practice</strong>
+        <p>Coverage first, pixels later: let the inventory drive implementation and use screenshots only for visual acceptance.</p>
+      </div>
+
+      <div class="hr"></div>
+<a id="architecture"></a><h3>Overall architecture<a class="anchor" href="#architecture">#</a></h3>
+<p>Five steps: plugin source → scan → UI inventory → native implementation → verification.</p><div class="flow">
+        <div class="step"><div class="idx">1</div><b>Plugin source</b><span>source map / TSX / client.js</span></div>
+        <div class="step"><div class="idx">2</div><b>Plugin Scanner</b><span>slot · entry · component · RPC</span></div>
+        <div class="step"><div class="idx">3</div><b>UI Manifest</b><span>JSON + Markdown gap list</span></div>
+        <div class="step"><div class="idx">4</div><b>Native Companion</b><span>PageContent · SlotContribution</span></div>
+        <div class="step"><div class="idx">5</div><b>Verify</b><span>--check · SlotCoverageTest</span></div>
+      </div>
+      <div class="grid cols-2" style="margin-top:16px">
+        <div class="card">
+          <div class="kicker">Host side</div>
+          <h3>Plugin logic stays untouched</h3>
+          <p>RPC, state, model calls and data queries stay in the JS plugin; native reads display data only through RPC.</p>
+        </div>
+        <div class="card">
+          <div class="kicker">App side</div>
+          <h3>Slot hosts and capability bridges</h3>
+          <p>Each position is hosted by <code>NativeSlotHost</code> / <code>OfficialSlot</code>;
+          <code>PluginRpcHost</code> and <code>PluginModelHost</code> provide controlled capabilities.</p>
+        </div>
+      </div>
+
+      <div class="hr"></div>
+<a id="inputs"></a><h3>Inputs and preparation<a class="anchor" href="#inputs">#</a></h3>
+<p>All you need is your published plugin package or source repo; the scanner reads that input directly.</p><div class="table-wrap">
+        <table>
+          <thead><tr><th>Input</th><th>Priority</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td><code>lib/*.js.map</code></td><td><span class="pill ok">Preferred</span></td><td>Published packages usually carry <code>sourcesContent</code>, so the original TSX can be recovered; this is the richest source.</td></tr>
+            <tr><td><code>src/**/*.tsx</code></td><td><span class="pill part">Secondary</span></td><td>The development repo's source; use it when no map is available.</td></tr>
+            <tr><td><code>lib/client.js</code></td><td><span class="pill no">Fallback</span></td><td>Compiled output; slot/entry/component are still detected, but the JSX tree is heuristic.</td></tr>
+            <tr><td>Native companion source</td><td><span class="pill accent" style="background:var(--accent-soft);color:var(--accent)">Optional</span></td><td><code>--companion</code> tells whether each plugin slot is actually implemented by the companion.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="code-wrap">
+        <button class="copy">Copy</button>
+        <pre><span class="cmt"># Repo root (App development environment)</span>
+<span class="cmd">python</span> tools/plugin_ui_scanner.py --help
+
+<span class="cmt"># The SDK delivery bundle ships the same scanner</span>
+<span class="cmd">python</span> tools/plugin_ui_scanner.py \
+  <span class="flag">--plugin</span> /path/to/your-plugin \
+  <span class="flag">--companion</span> /path/to/native-companion/src \
+  <span class="flag">--write</span> docs/plugin-ui.md \
+  <span class="flag">--json</span> docs/plugin-ui.json \
+  <span class="flag">--check</span></pre>
+      </div>
+      <div class="callout">
+        <strong>Reads only the plugin's own package</strong>
+        <p>The scanner reads the plugin's registration info; the built-in slot list comes from the App's <code>NativeSlotMapping</code>.</p>
+      </div>
+      <div class="callout warn">
+        <strong>Package name convention (mandatory)</strong>
+        <p>Companion APKs always use <code>com.dsh.mobile.&lt;full plugin name&gt;</code>: keep the
+        <code>dsh-plugin-</code> prefix, lower-case it, and turn non-alphanumeric characters into <code>_</code>.
+        The package name derives directly from the full plugin name: <code>dsh-plugin-demo</code> →
+        <code>com.dsh.mobile.dsh_plugin_demo</code>.</p>
+      </div>
+    </section>
+
+    <section id="scan">
+      <div class="section-head">
+        <h2><span class="num">02</span>Scan and report<a class="anchor" href="#scan">#</a></h2>
+        <p>Use the SDK scanner to extract the plugin's UI inventory, RPC and gaps, then read the report correctly.</p>
+      </div>
+      <h3>Scan the plugin source<a class="anchor" href="#scan">#</a></h3>
+<p>One scan yields every UI mount point in the plugin and the data each one needs.</p><div class="tree"><b>your-plugin/</b>
+├─ package.json          <span class="mini">name / version / dependencies</span>
+├─ lib/
+│  ├─ client.js          <span class="mini">compiled output (fallback)</span>
+│  └─ client.js.map      <span class="mini">sourcesContent holds original TSX (preferred)</span>
+├─ src/                  <span class="mini">dev repo source (secondary)</span>
+│  ├─ client/index.ts
+│  ├─ client/DemoDockChip.tsx
+│  └─ client/DemoSettingsSection.tsx
+└─ locale/*.json         <span class="mini">string tables</span></div>
+      <h3>What the scanner detects</h3>
+      <div class="grid cols-2">
+        <div class="card"><h3>Mount points</h3><p><code>ctx.slots.register({ name, id, order, mode }, Component)</code>;
+        <code>slots.inject</code> / <code>children</code> relationships are detected too.</p></div>
+        <div class="card"><h3>Data dependencies</h3><p><code>useProjection('...')</code>, <code>useChat/useSession</code>,
+        the <code>inject</code> face, and plugin RPC method names.</p></div>
+        <div class="card"><h3>UI structure</h3><p>The component JSX tree, visible copy, button actions, locale keys;
+        used to confirm empty states, forms, and hint copy are all covered.</p></div>
+        <div class="card"><h3>Placement / interaction</h3><p><code>useAnchoredPosition</code>, <code>createPortal</code>,
+        <code>anchorRef</code>, <code>role="dialog"</code>, <code>side/align</code> and other anchoring clues;
+        if the companion uses a centered Dialog where the plugin anchors a popover, the mismatch is reported.</p></div>
+        <div class="card"><h3>Gaps</h3><p>Unmapped slots, missing host NativeSlot, and a passed <code>--companion</code>
+        that never registers the matching contribution are all reported.</p></div>
+      </div>
+      <h3>Example command: Demo plugin</h3>
+      <div class="code-wrap">
+        <button class="copy">Copy</button>
+        <pre><span class="cmd">python</span> tools/plugin_ui_scanner.py \
+  <span class="flag">--plugin</span> demo/js \
+  <span class="flag">--companion</span> demo/native/src/main/kotlin \
+  <span class="flag">--json</span> docs/plugin-ui-inventory-example.json \
+  <span class="flag">--check</span></pre>
+      </div>
+      <p class="mini">The scan finds 2 slots (<code>settings.section</code>, <code>conversation.composer.dock</code>);
+      both are mapped, hosted, and companion-implemented, so <code>--check</code> passes. The report's "RPC endpoints"
+      are the data dependencies the Web component actually calls (<code>demo.status</code> / <code>demo.bump</code>);
+      the full Host-side contract has 4 more endpoints.</p>
+
+      <div class="hr"></div>
+<a id="report"></a><h3>Reading the scan report<a class="anchor" href="#report">#</a></h3>
+<p>Each column maps to an implementation task: every row is a to-do.</p><div class="table-wrap">
+        <table>
+          <thead><tr><th>Column</th><th>Meaning</th><th>How to use it</th></tr></thead>
+          <tbody>
+            <tr><td><code>slot</code></td><td>Built-in slot name</td><td>Find the target position in <code>NativeSlotMapping</code></td></tr>
+            <tr><td><code>entry</code></td><td>Sub-entry under the same slot</td><td>e.g. activity/usage under composer.dock; can split into separate native slots</td></tr>
+            <tr><td><code>component</code></td><td>Registered React component</td><td>Read its source to pin down the UI structure</td></tr>
+            <tr><td><code>native slot</code></td><td>Mapped NativeSlot</td><td>Empty = the App has not claimed this position yet</td></tr>
+            <tr><td><code>host</code></td><td>Whether the App has a NativeSlot container</td><td>No = nothing renders even if the mapping exists</td></tr>
+            <tr><td><code>native impl</code></td><td>Whether the companion registers a contribution/page</td><td>No = the plugin has UI but the companion does not implement it</td></tr>
+            <tr><td><code>data deps</code></td><td>projection / RPC / inject</td><td>Decides between native <code>PluginRpcHost</code> and spec delivery</td></tr>
+            <tr><td><code>placement/interaction</code></td><td>anchored popover / portal / dialog clues</td><td>Use them to choose an anchored Popup or a Dialog</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>Demo plugin integration checklist</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Slot</th><th>Component (Web → native)</th><th>Native slot</th><th>Scan status</th><th>Implementation</th></tr></thead>
+          <tbody>
+            <tr><td><code>settings.section</code></td><td>DemoSettingsSection → DemoSettingsPage</td><td><code>SETTINGS_SHEET</code></td><td><span class="pill ok">Mapped / hosted / implemented</span></td><td>PageContent takeover + <code>demo.status</code> RPC + <code>dispatchEvent</code></td></tr>
+            <tr><td><code>conversation.composer.dock</code></td><td>DemoDockChip → DemoDockContribution</td><td><code>COMPOSER_DOCK</code></td><td><span class="pill ok">Mapped / hosted / implemented</span></td><td>SlotContribution + PluginPopover + RPC / event loop</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="mini">The Demo injects the other 21 slots; <code>WEB_ISLAND_FULL</code>
+      is listed separately as the full-island Web fallback container.</p>
+    </section>
+
+    <section id="implement">
+      <div class="section-head">
+        <h2><span class="num">03</span>Implementation, capabilities, and slots<a class="anchor" href="#implement">#</a></h2>
+        <p>Choose between PageContent / SlotContribution / OfficialSlot, then wire in RPC and host capabilities.</p>
+      </div>
+      <a id="mapping"></a><h3>Choosing an implementation<a class="anchor" href="#mapping">#</a></h3>
+<p>Pick the container by shape and the capability by data need; choose the lightest, best-fitting implementation for each position.</p><div class="table-wrap">
+        <table>
+          <thead><tr><th>Scan result</th><th>Native implementation</th><th>Typical example</th></tr></thead>
+          <tbody>
+            <tr><td>Settings page / standalone page</td><td><code>PageContent</code> + <code>PageRegistry</code></td><td>Demo settings page (full-page takeover)</td></tr>
+            <tr><td>Composer, messages, dock, card extensions</td><td><code>SlotContribution</code></td><td>Demo dock chip, message actions, card extensions</td></tr>
+            <tr><td>Built-in controls themselves</td><td><code>OfficialSlot</code> wrapping the default UI</td><td>tok/s, cache hit, context, send button</td></tr>
+            <tr><td>Informational cards / lists / metrics</td><td><code>SpecSlotContribution</code> + dsh-ui spec</td><td>Status card, usage panel, config summary</td></tr>
+            <tr><td>Needs model/reasoning switching</td><td><code>PluginModelHost.selectModel</code></td><td>Fast mode button</td></tr>
+            <tr><td>No host yet</td><td>Explicit Web fallback</td><td>Unclaimed new slot</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout warn">
+        <strong>Adding host capabilities</strong>
+        <p>When a companion needs App capabilities such as "switch model" or "write file", add an optional SDK
+        interface (see <code>PluginRpcHost</code> / <code>PluginModelHost</code>) and let the host inject it centrally.</p>
+      </div>
+
+      <div class="hr"></div>
+<a id="capabilities"></a><h3>Host capabilities and data contract<a class="anchor" href="#capabilities">#</a></h3>
+<p>Native reads display data from the Host only through RPC; networking and credentials stay in the Host, and the App injects capabilities.</p><div class="grid cols-2">
+        <div class="card">
+          <div class="kicker">PluginRpcHost</div>
+          <h3>Call the plugin's existing RPC</h3>
+          <pre style="margin-top:10px;font-size:12px;padding:12px"><code>rpc.callRpc(
+  "demo.status",
+  JsonObject(emptyMap())
+) { result -&gt; ... }</code></pre>
+        </div>
+        <div class="card">
+          <div class="kicker">PluginModelHost</div>
+          <h3>Switch model / reasoning</h3>
+          <pre style="margin-top:10px;font-size:12px;padding:12px"><code>host.selectModel(
+  provider = "your-provider",
+  model = "your-model",
+  reasoningEffort = "highspeed"
+)</code></pre>
+        </div>
+        <div class="card">
+          <div class="kicker">spec</div>
+          <h3>App → slot state</h3>
+          <p>The slot spec carries display/selection state only, for example <code>modelId</code>, <code>reasoningEffort</code>,
+          <code>provider</code>, <code>displayName</code>.</p>
+        </div>
+        <div class="card">
+          <div class="kicker">Updates</div>
+          <h3>refresh / polling</h3>
+          <p>Long-running logic stays in the Host; native polls every 60s or waits for <code>client/refresh</code>;
+          business state stays in the Host and native reads it on demand.</p>
+        </div>
+      </div>
+      <div class="callout bad">
+        <strong>Credential boundary</strong>
+        <p>Tokens / API keys / arbitrary file paths appear only in the Host; native receives display data only.</p>
+      </div>
+
+      <div class="hr"></div>
+<a id="slots"></a><h3>Built-in controls also go through slots<a class="anchor" href="#slots">#</a></h3>
+<p>The built-in compositor dock is made of pluggable entries: tok/s, cache hit, and context each register independently.</p><div class="table-wrap">
+        <table>
+          <thead><tr><th>Built-in slot</th><th>Native slot</th><th>Host</th><th>Built-in default</th></tr></thead>
+          <tbody>
+            <tr><td><code>conversation.composer.dock#activity</code></td><td><code>COMPOSER_DOCK_ACTIVITY</code></td><td>ComposerDockBar</td><td>tok/s</td></tr>
+            <tr><td><code>conversation.composer.dock#usage</code></td><td><code>COMPOSER_DOCK_USAGE</code></td><td>ComposerDockBar</td><td>Cache hit</td></tr>
+            <tr><td>dock context meter</td><td><code>COMPOSER_DOCK_CONTEXT</code></td><td>ComposerDockBar</td><td>Context ring</td></tr>
+            <tr><td>dock plugin extension</td><td><code>COMPOSER_DOCK</code></td><td>ComposerDockBar</td><td>Demo chip, etc.</td></tr>
+            <tr><td><code>settings.models.provider-card</code></td><td><code>SETTINGS_PROVIDER_CARD</code></td><td>SettingsModelsPane</td><td>Provider card extension</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="code-wrap">
+        <button class="copy">Copy</button>
+        <pre><span class="cmt">// Built-in controls mount through OfficialSlot; plugins can ENHANCE / OVERRIDE individual entries</span>
+OfficialSlot(
+  slot = NativeSlot.COMPOSER_DOCK_USAGE,
+  spec = buildJsonObject { put(<span class="str">"cacheHitPercent"</span>, stats.cacheHitPercent) },
+) {
+  StatReading(label = <span class="str">"Cache hit ${stats.cacheHitPercent}%"</span>) { ... }
+}</pre>
+      </div>
+      <h3>Popup placement and material</h3>
+      <p>The Web version anchors overlays with <code>useAnchoredPosition</code> / <code>createPortal</code>;
+      native uses the SDK's <code>PluginPopover</code>: above the trigger, right-aligned,
+      with material taken from the App's <code>DshMenuCard</code> mapping (surface color, hairline border, 16dp radius, menu shadow).</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Web clue</th><th>Native implementation</th></tr></thead>
+          <tbody>
+            <tr><td><code>useAnchoredPosition</code> / <code>anchorRef</code></td><td><code>PluginPopover</code>, in the same Box as the trigger</td></tr>
+            <tr><td><code>createPortal</code> / <code>role="dialog"</code></td><td><code>Popup</code> + <code>PopupPositionProvider</code></td></tr>
+            <tr><td><code>side: 'top'</code> / <code>align: 'end'</code></td><td>6dp above, right-aligned, clamped to the window</td></tr>
+            <tr><td>App menu material</td><td><code>colorPopupSurface</code> / <code>colorPopupBorder</code> / <code>cornerPopup</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout warn">
+        <strong>Scan placement clues too</strong>
+        <p>The scanner extracts placement clues such as <code>useAnchoredPosition</code>, <code>createPortal</code>,
+        and <code>side/align</code>, and warns when the companion uses a Dialog while the plugin anchors
+        a popover; follow those clues when implementing overlays.</p>
+      </div>
+    </section>
+
+    <section id="case">
+      <div class="section-head">
+        <h2><span class="num">04</span>Demo plugin integration case<a class="anchor" href="#case">#</a></h2>
+        <p>How the Demo's JS and native halves pair up, read state, send actions back, and degrade.</p>
+      </div>
+      <div class="grid cols-2">
+        <div class="card">
+          <div class="kicker">1 · Scan</div>
+          <h3>2 slots / 6 RPC</h3>
+          <p><code>settings.section</code>, <code>conversation.composer.dock</code>;
+          both slots are mapped, hosted, and companion-implemented, and --check passes first time.</p>
+        </div>
+        <div class="card">
+          <div class="kicker">2 · Takeover</div>
+          <h3>PageContent + SlotContribution</h3>
+          <p><code>PageEntry(id="demo")</code> takes over the settings page; the dock draws its
+          RPC chip with <code>SlotContribution</code> and the overlay uses <code>PluginPopover</code>.</p>
+        </div>
+        <div class="card">
+          <div class="kicker">3 · Wiring</div>
+          <h3>RPC + events</h3>
+          <p>Reads go through <code>PluginRpcHost.callRpc("demo.status")</code>; writes go through
+          <code>dispatchEvent("dsh-plugin-demo#demo","submit",{actionId:"bump"})</code>;
+          the bridge queues <code>client/refresh</code> and the page refetches.</p>
+        </div>
+        <div class="card">
+          <div class="kicker">4 · Verify</div>
+          <h3>2/2 passing</h3>
+          <p><code>--check</code> passes; <code>node --test</code> is 7/7.</p>
+        </div>
+      </div>
+      <h3>Verification output after implementation</h3>
+      <div class="code-wrap">
+        <button class="copy">Copy</button>
+        <pre><span class="cmt">$ python tools/plugin_ui_scanner.py --plugin demo/js \
+    --companion demo/native/src/main/kotlin --check</span>
+plugin UI coverage check OK
+
+<span class="cmt"># Per slot</span>
+conversation.composer.dock      DemoDockChip         impl=True
+settings.section                DemoSettingsSection  impl=True
+
+<span class="cmt"># RPC / actions: envelope, routing, state isolation</span>
+<span class="cmt">$ node --test demo/js/test/rpc.test.mjs</span>
+# tests 7 / pass 7 / fail 0</pre>
+      </div>
+    </section>
+
+    <section id="validation">
+      <div class="section-head">
+        <h2><span class="num">05</span>Validation, launch checks, and operating notes<a class="anchor" href="#validation">#</a></h2>
+        <p>The full loop from --check to on-device acceptance, plus the order for handling common problems.</p>
+      </div>
+      <h3>Validation and CI<a class="anchor" href="#validation">#</a></h3>
+<p>Three gates: plugin coverage, built-in slot coverage, and App unit tests.</p><div class="grid cols-3">
+        <div class="card"><div class="kicker">Gate 1</div><h3>plugin scanner --check</h3>
+        <p>Passes when every plugin slot is mapped, hosted, and implemented by the companion.</p></div>
+        <div class="card"><div class="kicker">Gate 2</div><h3>slot_inventory.py</h3>
+        <p>Keeps built-in slot mappings and hosts consistent; when adding a built-in slot, update mapping, host, and tests together.</p></div>
+        <div class="card"><div class="kicker">Gate 3</div><h3>SlotCoverageTest</h3>
+        <p>Kotlin reflection asserts the full set of built-in constants; CI matches local.</p></div>
+      </div>
+      <div class="code-wrap" style="margin-top:16px">
+        <button class="copy">Copy</button>
+        <pre><span class="cmt"># Plugin coverage (SDK repo)</span>
+<span class="cmd">python</span> tools/plugin_ui_scanner.py --plugin &lt;plugin&gt; --companion &lt;src&gt; --check
+
+<span class="cmt"># App-side built-in slot coverage: slot_inventory.py + SlotCoverageTest</span></pre>
+      </div>
+      <div class="callout good">
+        <strong>Coverage rule</strong>
+        <p>When adding a built-in slot, add the mapping, host, and tests first, then update the inventory; keep
+        <code>--check</code> green on every change.</p>
+      </div>
+
+      <div class="hr"></div>
+<a id="pitfalls"></a><h3>Launch checklist<a class="anchor" href="#pitfalls">#</a></h3>
+<p>Go module by module; each item gives the right approach and the acceptance criteria.</p><div class="grid cols-2">
+        <div class="card"><div class="kicker">Slot</div><h3>Bridge capabilities first</h3>
+        <p>A slot contribution gets only the base <code>PluginHostApi</code> by default; when you need RPC/model
+        capabilities, wrap it with <code>SlotBridgeHost</code> before reading them.</p></div>
+        <div class="card"><div class="kicker">Async loading</div><h3>Make slots observable</h3>
+        <p><code>SlotRegistry</code> keeps an observable revision; containers recompose automatically after APK load/unload.</p></div>
+        <div class="card"><div class="kicker">Loading</div><h3>Use packageContext.classLoader</h3>
+        <p>With multi-dex, prefer <code>packageContext.classLoader</code>; on a load failure, log it and degrade to Web.</p></div>
+        <div class="card"><div class="kicker">Data</div><h3>Backoff retry + periodic refresh</h3>
+        <p>Retry with backoff while the first screen is not ready (800ms / 2s); afterwards re-read every 30–60s or on <code>client/refresh</code>.</p></div>
+        <div class="card"><div class="kicker">Placement</div><h3>Anchor popups and cap width</h3>
+        <p>Use <code>PluginPopover</code> with width <code>IntrinsicSize.Max</code>, capped at 320dp.</p></div>
+        <div class="card"><div class="kicker">Styling</div><h3>Take all material from the theme</h3>
+        <p>Overlay background, border, radius, and text come from <code>PluginTheme</code>'s popup fields, matching the App menus.</p></div>
+      </div>
+      <div class="callout warn">
+        <strong>Full checklist</strong>
+        <p>See
+        <a href="https://github.com/EricFL1998/dsh-mobile-plugin-sdk/blob/main/docs/pitfalls.en.md" target="_blank" rel="noopener">docs/pitfalls.md</a>
+        for each module's best practices, checks, and acceptance criteria.</p>
+      </div>
+
+      <div class="hr"></div>
+<a id="troubleshooting"></a><h3>Operating notes<a class="anchor" href="#troubleshooting">#</a></h3>
+<p>Do scanning, claiming, and verification in this order.</p><details open>
+        <summary>Confirm the scan input</summary>
+        <p>Provide <code>lib/client.js.map</code> or <code>src/*.tsx</code> in the plugin package; if only compiled
+        output exists, fall back to <code>lib/client.js</code>. Point <code>--plugin</code> at the package root.</p>
+      </details>
+      <details>
+        <summary>Claim unmapped slots</summary>
+        <p>Add the <code>DshSlotRegistry</code> constant, <code>NativeSlot</code>,
+        <code>NativeSlotMapping</code>, and host on the App side, then run <code>slot_inventory.py</code>.</p>
+      </details>
+      <details>
+        <summary>Add host containers</summary>
+        <p>Add <code>NativeSlot</code> / <code>OfficialSlot</code> calls at the matching page or control position.</p>
+      </details>
+      <details>
+        <summary>Add companion implementations</summary>
+        <p>Register the matching <code>SlotContribution</code> / <code>PageContent</code> in the companion,
+        keep NativeSlot aligned with the JS registration, then scan again.</p>
+      </details>
+      <details>
+        <summary>Wire interaction capabilities</summary>
+        <p>When RPC is needed, confirm <code>PluginRpcHost</code> is injected by <code>SlotBridgeHost</code>
+        and the App has set <code>NativeHost.rpcHandler</code>.</p>
+      </details>
+      <details>
+        <summary>Confirm coverage is complete</summary>
+        <p>Trust <code>--check</code>, <code>slot_inventory.py</code>, and <code>SlotCoverageTest</code>;
+        screenshots only serve visual acceptance.</p>
+      </details>
+    </section>
+
+    <section id="publish">
+      <div class="section-head">
+        <h2><span class="num">06</span>Publishing and store discovery<a class="anchor" href="#publish">#</a></h2>
+        <p>Publishing JS/APK, tags and topics, and how the store index takes effect.</p>
+      </div>
+      <div class="grid cols-2">
+        <div class="card"><div class="kicker">1 · Repo topic</div><h3>dsh-mobile-plugin</h3>
+        <p>The store index searches repos by <code>topic:dsh-mobile-plugin</code>. Add it under
+        About → Topics on the repo page, or with <code>gh api -X PUT repos/&lt;owner&gt;/&lt;repo&gt;/topics -f 'names[]=dsh-mobile-plugin'</code>.</p></div>
+        <div class="card"><div class="kicker">2 · Release tag</div><h3>v0.17.18</h3>
+        <p>The store reads the <strong>latest release</strong>, and the tag anchors it. Use
+        <code>git tag -a v0.17.18</code> + <code>gh release create v0.17.18 ...</code>;
+        do not publish it as a prerelease.</p></div>
+        <div class="card"><div class="kicker">3 · APK asset</div><h3>At least one .apk</h3>
+        <p>The Release must include the companion APK, with an asset name ending in <code>.apk</code>; without
+        an asset the detail page shows "No APK in the latest Release".</p></div>
+        <div class="card"><div class="kicker">Propagation</div><h3>About 30 minutes</h3>
+        <p>A scheduled Action in the SDK repo generates <code>docs/store/index.json</code>; the App reads only the index
+        and never calls the GitHub API directly. A new Release reaches the store within about 30 minutes.</p></div>
+      </div>
+      <div class="code-wrap" style="margin-top:16px">
+        <button class="copy">Copy</button>
+        <pre><span class="cmt"># 1) Repo topic (store discovery)</span>
+gh api -X PUT repos/&lt;owner&gt;/&lt;repo&gt;/topics \
+  -f 'names[]=dsh-plugin' -f 'names[]=dsh-mobile-plugin' -f 'names[]=android'
+
+<span class="cmt"># 2) Tag and push it (the store reads the latest release)</span>
+git tag -a v0.17.18 -m "companion 0.17.18"
+git push origin v0.17.18
+
+<span class="cmt"># 3) Create the Release on that tag and upload the APK asset</span>
+gh release create v0.17.18 dsh-plugin-&lt;name&gt;-companion-0.17.18.apk \
+  --title "v0.17.18" --notes "Companion APK for &lt;js-package&gt; 0.17.18"</pre>
+      </div>
+      <div class="callout warn">
+        <strong>Not in the store? Check in order</strong>
+        <p>① Is the repo public and did the topic save; ② is the Release the latest (not a prerelease);
+        ③ is there a <code>.apk</code> asset; ④ has the index refreshed (up to about 30 minutes);
+        ⑤ a README-only or JS-only push never reaches the store.</p>
+      </div>
+    </section>
+
+    <section id="ui">
+      <div class="section-head">
+        <h2><span class="num">07</span>UI design guideline<a class="anchor" href="#ui">#</a></h2>
+        <p>Sizing, hierarchy, and acceptance for DshPanel / DshButton and the other components.</p>
+      </div>
+      <div class="grid cols-2">
+        <div class="card"><div class="kicker">Page skeleton</div><h3>16dp / 8dp / 11sp</h3>
+        <p>16dp page margins; 8dp between panels; section headers 11sp in the tertiary text color; panels with
+        16dp radius, a 0.5dp hairline border, and 16dp padding.</p></div>
+        <div class="card"><div class="kicker">Panels</div><h3>DshPanel + DshPanelRow</h3>
+        <p>One panel holds a single kind of setting; rows are 44dp tall; only tappable rows get a pressed state;
+        put descriptions in <code>subtitle</code> or <code>DshPanelCaption</code>.</p></div>
+        <div class="card"><div class="kicker">Buttons</div><h3>DshButton's four tiers</h3>
+        <p>One PRIMARY per screen; SECONDARY for cancel or peer actions; GHOST for inline text actions;
+        DANGER for delete, sign-out, and revoking access — always with a confirmation.</p></div>
+        <div class="card"><div class="kicker">Controls</div><h3>Switches / inputs / dialogs</h3>
+        <p><code>DshSwitchRow</code>, <code>DshTextField</code>, and <code>DshDialog</code>
+        already encapsulate sizing and theme; disabled state is uniformly 40% opacity — never recolor it yourself.</p></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Component</th><th>Purpose</th><th>Constraint</th></tr></thead>
+          <tbody>
+            <tr><td><code>DshPanel</code> / <code>DshPanelRow</code></td><td>Settings groups and rows</td><td>16dp radius, 44dp row height</td></tr>
+            <tr><td><code>DshButton</code></td><td>Save / cancel / dangerous actions</td><td>One PRIMARY per screen; 40dp height</td></tr>
+            <tr><td><code>DshSwitchRow</code></td><td>Toggle settings</td><td>36×20 track, 16dp thumb</td></tr>
+            <tr><td><code>DshTextField</code></td><td>Text input</td><td>12dp radius; placeholder required</td></tr>
+            <tr><td><code>DshChip</code></td><td>Status/category label</td><td>Not clickable</td></tr>
+            <tr><td><code>DshDialog</code></td><td>Confirmation / dangerous actions</td><td>At most two buttons; use DANGER for dangerous confirmation</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout">
+        <strong>Full guideline</strong>
+        <p>See
+        <a href="https://github.com/EricFL1998/dsh-mobile-plugin-sdk/blob/main/docs/ui-guideline.en.md" target="_blank" rel="noopener">docs/ui-guideline.md</a>
+        for the color token table, prohibitions, and acceptance checklist.</p>
+      </div>
+    </section>
+
+    <section id="files">
+      <div class="section-head">
+        <h2><span class="num">08</span>File layout and versions<a class="anchor" href="#files">#</a></h2>
+        <p>SDK repo layout, version matrix, and glossary.</p>
+      </div>
+      <h3>SDK file layout<a class="anchor" href="#files">#</a></h3>
+<p>Key files in the delivery bundle and the repo.</p><div class="tree"><b>dsh-mobile-plugin-sdk/</b>
+├─ README.md
+├─ slot-mapping.md                <span class="mini">31 built-in slots → native slots → hosts</span>
+├─ tools/
+│  ├─ plugin_ui_scanner.py        <span class="mini">plugin source scanner (reads only the plugin's own package)</span>
+│  └─ sdk-mapping.json            <span class="mini">slot mapping snapshot bundled with the scanner</span>
+├─ docs/
+│  ├─ source-driven-native-ui.md  <span class="mini">this workflow in prose</span>
+│  ├─ plugin-ui-inventory-example.md <span class="mini">scan output for the Demo plugin</span>
+│  ├─ plugin-sdk-guide.md         <span class="mini">SDK developer docs</span>
+│  ├─ ui-guideline.md             <span class="mini">native UI design guideline (DshPanel / DshButton)</span>
+│  ├─ publishing.md               <span class="mini">publishing and tagging</span>
+│  └─ slot-inventory.md
+├─ demo/
+│  ├─ js/                         <span class="mini">JS plugin: demo.* RPC + Web fallback</span>
+│  └─ native/                     <span class="mini">native companion: PageContent / SlotContribution / Popover</span>
+├─ reference/native-host/         <span class="mini">App-side host container reference</span>
+├─ sdk/                           <span class="mini">Kotlin SDK source and standalone build</span>
+└─ artifacts/
+   └─ dsh-native-ui-sdk-release.aar</div>
+      <div class="callout">
+        <strong>GitHub Pages</strong>
+        <p>This page is a single-file static site at <code>docs/index.html</code>. A push to <code>main</code>
+        makes <code>.github/workflows/pages.yml</code> build and publish <code>docs/</code>;
+        set Settings → Pages source to <code>GitHub Actions</code> in the repository.</p>
+      </div>
+
+      <div class="hr"></div>
+<a id="glossary"></a><h3>Glossary and versions<a class="anchor" href="#glossary">#</a></h3>
+<p>Quick reference.</p><div class="table-wrap">
+        <table>
+          <thead><tr><th>Term</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>slot</td><td>A mount point in the built-in UI; plugins claim it with <code>ctx.slots.register</code>.</td></tr>
+            <tr><td>entry</td><td>A sub-entry under the same slot, such as activity/usage in the dock; can split into separate native slots.</td></tr>
+            <tr><td>NativeSlot</td><td>A native container position on the phone; mapped explicitly by <code>NativeSlotMapping</code>.</td></tr>
+            <tr><td>OfficialSlot</td><td>Slot wrapper for built-in controls; default content plus plugin ENHANCE/OVERRIDE.</td></tr>
+            <tr><td>PageContent</td><td>Full-page native UI, registered with <code>PageRegistry</code>.</td></tr>
+            <tr><td>SlotContribution</td><td>Embedded native UI, registered with <code>SlotRegistry</code>.</td></tr>
+            <tr><td>SpecSlotContribution</td><td>Hands the dsh-ui structure in a slot spec to <code>SpecRenderer</code> for generic rendering.</td></tr>
+            <tr><td>PluginRpcHost</td><td>Host capability for calling the plugin's existing RPC.</td></tr>
+            <tr><td>PluginModelHost</td><td>Host capability for switching model/reasoning effort (fast mode).</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="grid cols-2" style="margin-top:16px">
+        <div class="card"><div class="kicker">Version</div><h3>SDK API v1</h3>
+        <p><code>dsh.plugin.apiVersion = 1</code>, minAppVersion 12, Kotlin 2.1.10, Compose BOM 2025.02.00.</p></div>
+        <div class="card"><div class="kicker">Repository</div><h3>deepseek-harness-mobile</h3>
+        <p>The scanner, App slot hosts, Demo sample, and this docs page live in one repo; the SDK bundle can be distributed separately.</p></div>
+      </div>
+    </section>
+    </main>
+</div>
+
+<footer>
+  DSH Native UI SDK · Source-driven integration workflow · This page is static HTML and can be deployed straight to GitHub Pages
+</footer>
+
+<script>
+(function () {
+  var html = document.documentElement;
+  var btn = document.getElementById('themeBtn');
+  var saved = localStorage.getItem('dsh-theme') || 'auto';
+  html.setAttribute('data-theme', saved);
+  var modes = ['auto', 'light', 'dark'];
+  btn.addEventListener('click', function () {
+    var next = modes[(modes.indexOf(saved) + 1) % modes.length];
+    saved = next;
+    localStorage.setItem('dsh-theme', next);
+    html.setAttribute('data-theme', next);
+    btn.textContent = next === 'auto' ? '◐' : next === 'light' ? '☀' : '☾';
+  });
+  btn.textContent = saved === 'auto' ? '◐' : saved === 'light' ? '☀' : '☾';
+
+  document.querySelectorAll('.copy').forEach(function (button) {
+    button.addEventListener('click', function () {
+      var pre = button.parentElement.querySelector('pre');
+      var text = pre.innerText;
+      var done = function () {
+        button.textContent = 'Copied';
+        setTimeout(function () { button.textContent = 'Copy'; }, 1200);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(done);
+      } else {
+        var area = document.createElement('textarea');
+        area.value = text;
+        document.body.appendChild(area);
+        area.select();
+        try { document.execCommand('copy'); done(); } catch (e) {}
+        document.body.removeChild(area);
+      }
+    });
+  });
+
+  var menu = document.getElementById('menuBtn');
+  var toc = document.getElementById('toc');
+  menu.addEventListener('click', function () {
+    if (toc.style.display === 'block') { toc.style.display = ''; return; }
+    var links = toc.cloneNode(true);
+    links.id = 'mobileToc';
+    links.style.display = 'block';
+    links.style.position = 'static';
+    links.style.maxHeight = 'none';
+    links.querySelectorAll('a').forEach(function (a) {
+      a.addEventListener('click', function () { links.remove(); });
+    });
+    toc.parentElement.insertBefore(links, toc.nextSibling);
+    toc.style.display = 'none';
+  });
+
+  var links = Array.prototype.slice.call(document.querySelectorAll('#toc a'));
+  var sections = links.map(function (a) {
+    return document.querySelector(a.getAttribute('href'));
+  }).filter(Boolean);
+  if ('IntersectionObserver' in window) {
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        links.forEach(function (a) {
+          a.classList.toggle('active', a.getAttribute('href') === '#' + entry.target.id);
+        });
+      });
+    }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+    sections.forEach(function (s) { observer.observe(s); });
+  }
+})();
+</script>
+</body>
+</html>

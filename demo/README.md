@@ -1,5 +1,7 @@
 # Demo 插件（JS + 原生）
 
+> 中文 | [English](README.en.md)
+
 > 这是 SDK 仓库唯一的示例插件，由两份产物组成：
 >
 > - **JS 半边**：[`demo/js`](js/README.md) —— npm 包 `dsh-plugin-demo`；

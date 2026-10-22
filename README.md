@@ -1,5 +1,7 @@
 # DSH Mobile Native UI SDK
 
+> 中文 | [English](README.en.md)
+
 > 仓库：<https://github.com/EricFL1998/dsh-mobile-plugin-sdk>  
 > 在线文档：<https://ericfl1998.github.io/dsh-mobile-plugin-sdk/>（GitHub Pages）
 >

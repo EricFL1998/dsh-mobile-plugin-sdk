@@ -227,6 +227,14 @@
   h2:hover .anchor, h3:hover .anchor { opacity: 1; }
   .kbd { border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 1px 5px; font: 600 11px var(--mono); background: var(--surface-2); }
   .mini { font-size: 12.5px; color: var(--muted); }
+  .agent-prompt {
+    border: 1px solid var(--line); border-radius: 16px; background: var(--surface);
+    padding: 16px 18px; margin: 0 0 22px; box-shadow: var(--shadow);
+  }
+  .agent-prompt-head { font-weight: 700; font-size: 15px; margin-bottom: 2px; }
+  .agent-prompt-head .mini { display: block; font-weight: 400; margin-top: 3px; }
+  .agent-prompt pre { max-height: 340px; }
+  .prompt-lang { font-size: 12px; font-weight: 700; color: var(--accent); margin: 12px 0 4px; }
   .hr { height: 1px; background: var(--line); margin: 26px 0; }
   @media (max-width: 1080px) {
     .layout { grid-template-columns: 1fr; gap: 0; padding-top: 18px; }
@@ -270,6 +278,7 @@
       <a href="#case">案例</a>
       <a href="#publish">发布</a>
       <a href="#ui">UI 规范</a>
+      <a href="index.en.html">EN</a>
       <a href="https://github.com/EricFL1998/deepseek-harness-mobile" target="_blank" rel="noopener">GitHub ↗</a>
     </nav>
     <button class="icon-btn" id="themeBtn" title="切换主题" aria-label="切换主题">◐</button>
@@ -292,6 +301,60 @@
   </aside>
 
   <main>
+<div class="agent-prompt">
+  <div class="agent-prompt-head">把这个 prompt 扔给 agent：<span class="mini">Throw this prompt to an agent · 复制后替换【】/[] 里的内容</span></div>
+  <div class="prompt-lang">中文 prompt</div>
+  <div class="code-wrap">
+    <button class="copy">复制</button>
+    <pre id="agent-prompt">你是一个 DSH 原生 UI 插件开发 agent。请为我的插件编写伴生 APK：
+
+插件仓库：【owner/repo 或本地路径】
+JS 包名：【package.json 里的 name】
+
+按以下步骤执行：
+1. 阅读 SDK 接入文档：https://ericfl1998.github.io/dsh-mobile-plugin-sdk/ 与 https://github.com/EricFL1998/dsh-mobile-plugin-sdk
+2. 克隆 SDK 仓库到本地，在插件包根目录运行扫描器：
+   python tools/plugin_ui_scanner.py --plugin 【插件包路径】 --check
+3. 根据扫描报告的 slot / entry / component / RPC 选择实现方式：
+   整页用 PageContent，局部落点用 SlotContribution 或 dsh-ui spec。
+4. 设置页使用 SDK 的 DshPanel / DshSectionLabel / DshPanelRow / DshButton / DshSwitchRow；
+   颜色、字号、圆角全部从 PluginTheme 读取，禁止 Material Card/Button 和硬编码色值。
+5. 原生只做 UI：数据通过 PluginRpcHost 调 JS 侧 RPC，用户动作通过 host.dispatchEvent 回传；
+   Web UI 必须保持可用，原生只是增强。
+6. 伴生 manifest 写 dsh.plugin.jsPackage / dsh.plugin.id / apiVersion / minAppVersion；
+   先构建 debug APK，在 App 上验证页面、落点、RPC 与事件闭环。
+7. 发布：GitHub Release tag + .apk 资产，仓库加 topic dsh-mobile-plugin，
+   等商店索引刷新（约 30 分钟）。
+
+完成后输出：新增/修改文件、使用的 slot、RPC 列表、构建命令、APK 路径、未验证项。</pre>
+  </div>
+  <div class="prompt-lang">English prompt</div>
+  <div class="code-wrap">
+    <button class="copy">Copy</button>
+    <pre id="agent-prompt-en">You are a DSH native UI plugin development agent. Write a companion APK for my plugin:
+
+Plugin repo: [owner/repo or local path]
+JS package name: [name from package.json]
+
+Steps:
+1. Read the SDK docs: https://ericfl1998.github.io/dsh-mobile-plugin-sdk/ and https://github.com/EricFL1998/dsh-mobile-plugin-sdk
+2. Clone the SDK repo locally and run the scanner in the plugin package root:
+   python tools/plugin_ui_scanner.py --plugin [plugin package path] --check
+3. Based on the scan report's slot / entry / component / RPC, choose an implementation:
+   PageContent for a full page, SlotContribution or dsh-ui spec for a slot.
+4. Settings pages must use the SDK's DshPanel / DshSectionLabel / DshPanelRow / DshButton /
+   DshSwitchRow. Read colors, font sizes and radii from PluginTheme; no Material Card/Button
+   and no hardcoded values.
+5. Native is UI only: fetch data through PluginRpcHost RPC, send user actions via
+   host.dispatchEvent, and keep the Web UI fully functional.
+6. Companion manifest: dsh.plugin.jsPackage / dsh.plugin.id / apiVersion / minAppVersion.
+   Build a debug APK first and verify pages, slots, RPC and event flow on the App.
+7. Publish: GitHub Release tag + .apk asset, add the dsh-mobile-plugin topic, then wait
+   about 30 minutes for the store index to refresh.
+
+Output: files added/changed, slots used, RPC list, build command, APK path, unverified items.</pre>
+  </div>
+</div>
 <section id="overview" class="hero">
       <div class="eyebrow">DSH Mobile · Native UI SDK</div>
       <h1>从插件源码出发，<br>把原生 UI 一次接全</h1>

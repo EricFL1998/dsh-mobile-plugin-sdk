@@ -1,5 +1,7 @@
 # 发布与打 tag
 
+> 中文 | [English](publishing.en.md)
+
 这份文档说明 DSH Mobile 原生 UI 插件的发布物，以及 GitHub topic / Release / tag 的约定。
 插件商店只依赖这些约定发现插件，不读取任何私有索引。
 

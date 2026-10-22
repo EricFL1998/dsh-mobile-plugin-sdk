@@ -1,5 +1,7 @@
 # 内置 slot → 原生落点 → 宿主位置
 
+> 中文 | [English](slot-mapping.en.md)
+
 > 这份表是 App 当前代码的事实映射。当前 31 个内置 slot 已全部有原生落点与宿主容器，
 > 不再有“显式不支持”的 slot；新增内置 slot 时由 `SlotCoverageTest` 强制认领。
 >
