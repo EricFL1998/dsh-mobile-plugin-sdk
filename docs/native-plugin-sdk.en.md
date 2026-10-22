@@ -131,7 +131,7 @@ The plugin APK must declare the following meta-data and service; none may be omi
             android:exported="true"
             android:permission="com.deepseek.dsh.permission.BIND_PLUGIN">
             <meta-data android:name="dsh.plugin.apiVersion" android:value="1" />
-            <meta-data android:name="dsh.plugin.minAppVersion" android:value="12" />
+            <meta-data android:name="dsh.plugin.minAppVersion" android:value="100" />
             <meta-data android:name="dsh.plugin.version" android:value="1" />
             <meta-data android:name="dsh.plugin.id" android:value="demo.native-ui" />
             <meta-data android:name="dsh.plugin.name" android:value="Demo 插件" />
@@ -244,7 +244,7 @@ interface PluginStorage {
 
 - Colors, font sizes, shapes, and spacing **all** come from tokens in `host.currentTheme()`.
 - Hard-coded colors/font sizes are prohibited — static store scanning plus manual spot checks.
-- Dark mode and system font scaling are handled uniformly by the App; plugins do not branch on `isSystemInDarkTheme()`, because the theme snapshot already contains the resolved values.
+- Dark mode (following the App/Host ui-theme, not just the system) and font scaling are handled uniformly by the App; plugins do not branch on `isSystemInDarkTheme()`, because the theme snapshot already contains the resolved values.
 - Touch targets ≥44dp, no hover dependency, aligned with the Web mobile adaptation checklist.
 
 ---

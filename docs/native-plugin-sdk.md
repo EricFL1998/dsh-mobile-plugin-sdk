@@ -131,7 +131,7 @@ Demo 插件本身没有任何凭证（状态只是 Host 内存里的一个计数
             android:exported="true"
             android:permission="com.deepseek.dsh.permission.BIND_PLUGIN">
             <meta-data android:name="dsh.plugin.apiVersion" android:value="1" />
-            <meta-data android:name="dsh.plugin.minAppVersion" android:value="12" />
+            <meta-data android:name="dsh.plugin.minAppVersion" android:value="100" />
             <meta-data android:name="dsh.plugin.version" android:value="1" />
             <meta-data android:name="dsh.plugin.id" android:value="demo.native-ui" />
             <meta-data android:name="dsh.plugin.name" android:value="Demo 插件" />
@@ -247,7 +247,7 @@ interface PluginStorage {
 
 - 颜色、字号、形状、间距**全部**取自 `host.currentTheme()` 的 token；
 - 禁止硬编码色值/字号——商店静态扫描 + 人工抽查；
-- 深色模式、系统字体缩放由 App 统一处理；插件不写 `isSystemInDarkTheme()` 分支，主题快照已含正确取值；
+- 深色模式（跟随 App/Host 的 ui-theme，而非只看系统）、字体缩放由 App 统一处理；插件不写 `isSystemInDarkTheme()` 分支，主题快照已含正确取值；
 - 触控目标 ≥44dp、无 hover 依赖，与 Web 移动适配清单对齐。
 
 ---

@@ -210,7 +210,7 @@ meta-data must be placed at the **Service level**:
             android:exported="true"
             android:permission="com.deepseek.dsh.permission.BIND_PLUGIN">
             <meta-data android:name="dsh.plugin.apiVersion" android:value="1" />
-            <meta-data android:name="dsh.plugin.minAppVersion" android:value="12" />
+            <meta-data android:name="dsh.plugin.minAppVersion" android:value="100" />
             <meta-data android:name="dsh.plugin.version" android:value="1" />
             <meta-data android:name="dsh.plugin.id" android:value="demo.native-ui" />
             <meta-data android:name="dsh.plugin.name" android:value="Demo 插件" />

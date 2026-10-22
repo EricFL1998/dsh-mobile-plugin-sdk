@@ -140,7 +140,7 @@ demo/native/             ← 伴生 APK 工程
             android:exported="true"
             android:permission="com.deepseek.dsh.permission.BIND_PLUGIN">
             <meta-data android:name="dsh.plugin.apiVersion" android:value="1" />
-            <meta-data android:name="dsh.plugin.minAppVersion" android:value="12" />
+            <meta-data android:name="dsh.plugin.minAppVersion" android:value="100" />
             <meta-data android:name="dsh.plugin.version" android:value="1" />
             <meta-data android:name="dsh.plugin.id" android:value="demo.native-ui" />
             <meta-data android:name="dsh.plugin.name" android:value="Demo 插件" />
@@ -547,7 +547,7 @@ The Demo's key declaration (excerpt from `demo/js/package.json`):
       "pluginId": "demo.native-ui",
       "name": "Demo 插件",
       "apiVersion": 1,
-      "minAppVersion": 12,
+      "minAppVersion": 100,
       "capabilities": ["openUrl", "storage"]
     }
   }

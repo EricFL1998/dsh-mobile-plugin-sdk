@@ -237,7 +237,7 @@ Demo 的完整 manifest（[`demo/native/src/main/AndroidManifest.xml`](demo/nati
             android:exported="true"
             android:permission="com.deepseek.dsh.permission.BIND_PLUGIN">
             <meta-data android:name="dsh.plugin.apiVersion" android:value="1" />
-            <meta-data android:name="dsh.plugin.minAppVersion" android:value="12" />
+            <meta-data android:name="dsh.plugin.minAppVersion" android:value="100" />
             <meta-data android:name="dsh.plugin.version" android:value="1" />
             <meta-data android:name="dsh.plugin.id" android:value="demo.native-ui" />
             <meta-data android:name="dsh.plugin.name" android:value="Demo 插件" />
@@ -257,7 +257,7 @@ Demo 的完整 manifest（[`demo/native/src/main/AndroidManifest.xml`](demo/nati
 | meta-data | 含义 |
 | --- | --- |
 | `dsh.plugin.apiVersion` | SDK API 版本，当前 `1` |
-| `dsh.plugin.minAppVersion` | 最低 App versionCode，Demo 为 `12` |
+| `dsh.plugin.minAppVersion` | 最低 App versionCode，Demo 为 `100` |
 | `dsh.plugin.version` | 伴侣 APK 描述符版本，整数 |
 | `dsh.plugin.id` | 插件 id（`demo.native-ui`），发布后不可改 |
 | `dsh.plugin.name` | 插件详情/原生插件列表展示名 |
@@ -850,7 +850,7 @@ gh release create sdk-v1.0.0 \
 | --- | --- |
 | SDK API | v1 |
 | App 插件 API | `dsh.plugin.apiVersion = 1` |
-| 最低 App 版本 | `dsh.plugin.minAppVersion = 12` |
+| 最低 App 版本 | `dsh.plugin.minAppVersion = 100` |
 | Kotlin | 2.1.10 |
 | Compose BOM | 2025.02.00 |
 | kotlinx-serialization | 1.8.0 |

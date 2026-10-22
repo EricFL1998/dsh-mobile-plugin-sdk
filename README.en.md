@@ -245,7 +245,7 @@ The Demo's complete manifest ([`demo/native/src/main/AndroidManifest.xml`](demo/
             android:exported="true"
             android:permission="com.deepseek.dsh.permission.BIND_PLUGIN">
             <meta-data android:name="dsh.plugin.apiVersion" android:value="1" />
-            <meta-data android:name="dsh.plugin.minAppVersion" android:value="12" />
+            <meta-data android:name="dsh.plugin.minAppVersion" android:value="100" />
             <meta-data android:name="dsh.plugin.version" android:value="1" />
             <meta-data android:name="dsh.plugin.id" android:value="demo.native-ui" />
             <meta-data android:name="dsh.plugin.name" android:value="Demo 插件" />
@@ -265,7 +265,7 @@ All `dsh.plugin.*` meta-data entries go at **Service level**, not at `<applicati
 | meta-data | Meaning |
 | --- | --- |
 | `dsh.plugin.apiVersion` | SDK API version, currently `1` |
-| `dsh.plugin.minAppVersion` | Minimum App versionCode; the Demo uses `12` |
+| `dsh.plugin.minAppVersion` | Minimum App versionCode; the Demo uses `100` |
 | `dsh.plugin.version` | Companion APK descriptor version, an integer |
 | `dsh.plugin.id` | Plugin id (`demo.native-ui`), immutable after release |
 | `dsh.plugin.name` | Display name in plugin details / the native plugin list |
@@ -881,7 +881,7 @@ For the complete commands, version matrix, signing and update-notification rules
 | --- | --- |
 | SDK API | v1 |
 | App plugin API | `dsh.plugin.apiVersion = 1` |
-| Minimum App version | `dsh.plugin.minAppVersion = 12` |
+| Minimum App version | `dsh.plugin.minAppVersion = 100` |
 | Kotlin | 2.1.10 |
 | Compose BOM | 2025.02.00 |
 | kotlinx-serialization | 1.8.0 |

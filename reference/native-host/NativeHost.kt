@@ -19,6 +19,21 @@ object NativeHost {
 
     /** 当前主题快照；未 provide 时为 null。 */
     val LocalTheme = staticCompositionLocalOf<PluginTheme?> { null }
+
+    /**
+     * 插件自有 RPC 路由的进程级入口（App 启动/切换 Host 时设置）。
+     *
+     * 原生页面走 NativePageHost，但 composer dock 等 slot 贡献同样需要读取插件
+     * 既有状态（例如额度）。slot 宿主会把普通 PluginHostApi 升级成实现
+     * PluginRpcHost 的包装，复用这里同一个 pluginRpc 实现。
+     */
+    @Volatile
+    var rpcHandler: (suspend (method: String, payload: kotlinx.serialization.json.JsonObject) -> Result<String>)? = null
+
+    /** 当前会话的模型/推理档位选择器；由 App 聊天页注入。 */
+    @Volatile
+    var modelSelectHandler:
+        (suspend (provider: String, model: String, reasoningEffort: String?) -> Result<Unit>)? = null
 }
 
 /**
@@ -39,4 +54,29 @@ fun NativeSlot(
     val host = NativeHost.LocalHost.current ?: return
     val theme = NativeHost.LocalTheme.current ?: return
     NativeSlotHost(slot = slot, spec = spec, theme = theme, host = host, modifier = modifier)
+}
+
+/**
+ * 同一落点的一行紧凑版本：用于 composer 底部状态行这类横向空间。
+ *
+ * 贡献按 Row 项排列，不占满整行；没有插件注册时同样不占空间。
+ */
+@Composable
+fun NativeSlotInline(
+    slot: com.deepseek.dsh.plugin.nativesdk.slots.NativeSlot,
+    spec: kotlinx.serialization.json.JsonObject,
+    modifier: Modifier = Modifier,
+    scrollable: Boolean = false,
+) {
+    val host = NativeHost.LocalHost.current ?: return
+    val theme = NativeHost.LocalTheme.current ?: return
+    NativeSlotHost(
+        slot = slot,
+        spec = spec,
+        theme = theme,
+        host = host,
+        modifier = modifier,
+        inline = true,
+        scrollable = scrollable,
+    )
 }

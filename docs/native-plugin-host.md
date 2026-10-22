@@ -233,7 +233,7 @@ object ThemeBridge {
 ```
 
 - 快照只读；插件拿不到 `Context`、`Resources`；
-- 深色模式 / 系统字体缩放由 App 统一映射进快照，插件不写分支；
+- 深色模式（跟随 App/Host 的 ui-theme）/ 字体缩放由 App 统一映射进快照，插件不写分支；
 - 与 Web 移动适配同源：token 取值尽量与 DSH Web 主题对齐，减少两个前端的视觉漂移。
 
 ---

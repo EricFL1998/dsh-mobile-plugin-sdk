@@ -233,7 +233,7 @@ object ThemeBridge {
 ```
 
 - The snapshot is read-only; plugins cannot access `Context` or `Resources`;
-- Dark mode / system font scaling is mapped into the snapshot by the App; plugins do not write branches;
+- Dark mode (following the App/Host ui-theme) / font scaling is mapped into the snapshot by the App; plugins do not write branches;
 - Same source as Web mobile adaptation: token values should align with the DSH Web theme as closely as possible to reduce visual drift between the two frontends.
 
 ---

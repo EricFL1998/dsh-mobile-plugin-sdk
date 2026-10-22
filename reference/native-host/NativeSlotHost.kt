@@ -1,10 +1,14 @@
 package com.deepseek.dsh.plugin.nativehost
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -17,24 +21,24 @@ import com.deepseek.dsh.plugin.nativesdk.slots.SlotRegistry
 import com.deepseek.dsh.plugin.nativesdk.theme.PluginTheme
 import kotlinx.serialization.json.JsonObject
 
-/** 内置默认内容与插件增强内容的排列方式。 */
+/** 官方默认内容与插件增强内容的排列方式。 */
 enum class SlotArrangement {
-    /** 与内置控件并排（输入栏按钮、触发器）。 */
+    /** 与官方控件并排（输入栏按钮、触发器）。 */
     INLINE,
 
-    /** 内置内容在上，插件增强内容在下方（整条栏、整页）。 */
+    /** 官方内容在上，插件增强内容在下方（整条栏、整页）。 */
     BLOCK,
 }
 
 /**
- * 内置控件的 slot 包装：内置默认 UI 通过 [content] 传入，插件贡献按仲裁规则
- * 与默认内容组合。这样内置控件本身也走同一条 slot 通道，插件可以 ENHANCE 或
+ * 官方控件的 slot 包装：官方默认 UI 通过 [content] 传入，插件贡献按仲裁规则
+ * 与默认内容组合。这样官方控件本身也走同一条 slot 通道，插件可以 ENHANCE 或
  * OVERRIDE，而不是只有插件内容才经过 SlotRegistry。
  *
- * - 无 NativeHost/Theme（例如预览/测试）：只渲染内置默认内容；
- * - 插件 OVERRIDE：内置默认隐藏，只渲染该插件；
- * - ENHANCE：内置默认内容 + 插件贡献按 [arrangement] 排列；
- * - 都没有：只渲染内置默认内容。
+ * - 无 NativeHost/Theme（例如预览/测试）：只渲染官方默认内容；
+ * - 插件 OVERRIDE：官方默认隐藏，只渲染该插件；
+ * - ENHANCE：官方默认内容 + 插件贡献按 [arrangement] 排列；
+ * - 都没有：只渲染官方默认内容。
  */
 @Composable
 fun OfficialSlot(
@@ -51,10 +55,11 @@ fun OfficialSlot(
         return
     }
     val contributions = SlotRegistry.resolve(slot)
+    val slotHost = androidx.compose.runtime.remember(host) { SlotBridgeHost(host) }
     val override = contributions.firstOrNull { it.mode == RenderMode.OVERRIDE && !it.isOfficial }
     if (override != null) {
         NativeSlotGuard(pluginLabel = override.javaClass.simpleName, theme = theme) {
-            override.Render(spec, theme, host)
+            override.Render(spec, theme, slotHost)
         }
         return
     }
@@ -71,16 +76,20 @@ fun OfficialSlot(
             content()
             for (contribution in contributions) {
                 NativeSlotGuard(pluginLabel = contribution.javaClass.simpleName, theme = theme) {
-                    contribution.Render(spec, theme, host)
+                    contribution.Render(spec, theme, slotHost)
                 }
             }
         }
 
-        SlotArrangement.BLOCK -> Column(modifier = modifier) {
+        SlotArrangement.BLOCK -> Column(
+            modifier = modifier
+                .heightIn(max = 480.dp)
+                .verticalScroll(rememberScrollState()),
+        ) {
             content()
             for (contribution in contributions) {
                 NativeSlotGuard(pluginLabel = contribution.javaClass.simpleName, theme = theme) {
-                    contribution.Render(spec, theme, host)
+                    contribution.Render(spec, theme, slotHost)
                 }
             }
         }
@@ -108,13 +117,43 @@ fun NativeSlotHost(
     theme: PluginTheme,
     host: PluginHostApi,
     modifier: Modifier = Modifier,
+    /** true 时作为一行内的紧凑项渲染（composer 底部状态行），而不是整块纵向卡片。 */
+    inline: Boolean = false,
+    /** inline 落点内容超出可用宽度时是否允许横向滑动（外层已是滚动容器时保持 false）。 */
+    scrollable: Boolean = false,
 ) {
     val contributions = SlotRegistry.resolve(slot)
     if (contributions.isEmpty()) return
-    Column(modifier = modifier.fillMaxWidth()) {
+    // slot 贡献与整页原生页面共用同一套 Host RPC：把基础能力桥升级成
+    // PluginRpcHost，插件才能读取自己既有的状态（额度/账号等）。
+    val slotHost = androidx.compose.runtime.remember(host) { SlotBridgeHost(host) }
+    if (inline) {
+        Row(
+            modifier = if (scrollable) {
+                modifier.horizontalScroll(rememberScrollState())
+            } else {
+                modifier
+            },
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            for (contribution in contributions) {
+                NativeSlotGuard(pluginLabel = contribution.javaClass.simpleName, theme = theme) {
+                    contribution.Render(spec, theme, slotHost)
+                }
+            }
+        }
+        return
+    }
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .heightIn(max = 480.dp)
+            .verticalScroll(rememberScrollState()),
+    ) {
         for (contribution in contributions) {
             NativeSlotGuard(pluginLabel = contribution.javaClass.simpleName, theme = theme) {
-                contribution.Render(spec, theme, host)
+                contribution.Render(spec, theme, slotHost)
             }
         }
     }

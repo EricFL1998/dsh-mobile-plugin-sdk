@@ -46,7 +46,7 @@
       "pluginId": "demo.native-ui",
       "name": "Demo 插件",
       "apiVersion": 1,
-      "minAppVersion": 12,
+      "minAppVersion": 100,
       "capabilities": [
         "openUrl",
         "storage"
