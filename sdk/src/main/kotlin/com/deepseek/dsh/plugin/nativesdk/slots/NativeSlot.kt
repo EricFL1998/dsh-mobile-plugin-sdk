@@ -31,8 +31,17 @@ enum class NativeSlot {
      */
     SETTINGS_PROVIDER_CARD,
 
-    /** 侧栏面板。承载 sidebar.workspaces、sidebar.panellist、sidebar.right.pane.* 等。 */
+    /** 左侧栏面板。承载 sidebar.workspaces、sidebar.panellist 等。 */
     SIDEBAR_PANEL,
+
+    /**
+     * 聊天页右侧栏。承载 `sidebar.right.pane.tab`（标签内容）与
+     * `sidebar.right.pane.tab.title`（标签标题）、`rightbar.session`。
+     *
+     * App 在聊天页右侧栏里为插件留一个「插件」标签渲染这个落点；窄屏下右侧栏
+     * 是整屏覆盖（官方 <768px 行为），宽屏才并排显示。
+     */
+    RIGHT_PANEL,
 
     /** 输入框顶栏 / 底部药丸栏。承载 conversation.composer.dock、conversation.input.dock。 */
     COMPOSER_DOCK,

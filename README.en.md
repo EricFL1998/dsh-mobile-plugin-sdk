@@ -396,7 +396,8 @@ its page:
 | --- | --- | --- |
 | `SETTINGS_SHEET` | Settings page / plugin page entry and full page | Injected |
 | `SETTINGS_PROVIDER_CARD` | Provider card | Injected |
-| `SIDEBAR_PANEL` | Sidebar panel | Injected |
+| `SIDEBAR_PANEL` | Left sidebar panel | Injected |
+| `RIGHT_PANEL` | Chat right sidebar (fullscreen below 768px) | Injected |
 | `COMPOSER_DOCK` | Input bar dock | Injected (`Demo 42` chip + popover) |
 | `COMPOSER_DOCK_ACTIVITY` | dock activity (tok/s entry) | Injected |
 | `COMPOSER_DOCK_USAGE` | dock usage (cache hit entry) | Injected |

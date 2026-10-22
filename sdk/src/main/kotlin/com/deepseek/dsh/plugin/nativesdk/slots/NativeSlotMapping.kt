@@ -45,8 +45,9 @@ object NativeSlotMapping {
         "sidebar.workspaces.session.menu.item" to NativeSlot.SIDEBAR_PANEL,
         "sidebar.workspaces.session.row.action" to NativeSlot.SIDEBAR_PANEL,
         "sidebar.panellist" to NativeSlot.SIDEBAR_PANEL,
-        "sidebar.right.pane.tab" to NativeSlot.SIDEBAR_PANEL,
-        "sidebar.right.pane.tab.title" to NativeSlot.SIDEBAR_PANEL,
+        "sidebar.right.pane.tab" to NativeSlot.RIGHT_PANEL,
+        "sidebar.right.pane.tab.title" to NativeSlot.RIGHT_PANEL,
+        "rightbar.session" to NativeSlot.RIGHT_PANEL,
 
         // 顶层与设置
         "shell.overlay" to NativeSlot.PLUGIN_OVERLAY,

@@ -16,6 +16,7 @@
 | `SETTINGS_SHEET` | Page entry and full page for Settings / Plugin UI | `SettingsRootScreen.kt` |
 | `SETTINGS_PROVIDER_CARD` | Settings → Models provider card extension area | `SettingsModelsPane.kt` |
 | `SIDEBAR_PANEL` | Left navigation drawer panel | `MainActivity.kt` |
+| `RIGHT_PANEL` | Chat right sidebar (fullscreen below 768px) | `RightSidebarPanel.kt` |
 | `COMPOSER_DOCK` | Above the input card (dock pills / status bar) | `ChatScreen.kt` |
 | `COMPOSER_LEFT` | Left side of the input bar (next to the plus button) | `ChatScreen.kt` |
 | `COMPOSER_RIGHT` | Right side of the input bar (send/stop button) | `ChatScreen.kt` |
@@ -61,8 +62,9 @@
 | `sidebar.workspaces.session.menu.item` | `SIDEBAR_PANEL` | Wired |
 | `sidebar.workspaces.session.row.action` | `SIDEBAR_PANEL` | Wired |
 | `sidebar.panellist` | `SIDEBAR_PANEL` | Wired |
-| `sidebar.right.pane.tab` | `SIDEBAR_PANEL` | Wired |
-| `sidebar.right.pane.tab.title` | `SIDEBAR_PANEL` | Wired |
+| `sidebar.right.pane.tab` | `RIGHT_PANEL` | Wired (right sidebar Plugins tab) |
+| `sidebar.right.pane.tab.title` | `RIGHT_PANEL` | Wired |
+| `rightbar.session` | `RIGHT_PANEL` | Wired |
 | `shell.overlay` | `PLUGIN_OVERLAY` | Wired |
 | `settings.section` | `SETTINGS_SHEET` | Wired |
 | `settings.general.item` | `SETTINGS_SHEET` | Wired |
