@@ -385,7 +385,7 @@ Web 回退容器，Demo 不注入（会整屏覆盖 App），只在 Demo 页展�
 | `SETTINGS_SHEET` | 设置页 / 插件页入口与整页 | 注入 |
 | `SETTINGS_PROVIDER_CARD` | Provider 卡片 | 注入 |
 | `SIDEBAR_PANEL` | 左侧栏面板 | 注入 |
-| `RIGHT_PANEL` | 聊天右侧栏（窄屏整屏覆盖）；插件标签宿主待接入 | 预留 |
+| `RIGHT_PANEL` | 聊天右侧栏（窄屏整屏覆盖）；设置 `tabTitle` 的贡献成为标签 | 注入 |
 | `COMPOSER_DOCK` | 输入栏 dock | 注入（`Demo 42` 胶囊 + popover） |
 | `COMPOSER_DOCK_ACTIVITY` | dock activity（tok/s 条目） | 注入 |
 | `COMPOSER_DOCK_USAGE` | dock usage（缓存命中条目） | 注入 |

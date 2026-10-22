@@ -16,7 +16,7 @@
 | `SETTINGS_SHEET` | Page entry and full page for Settings / Plugin UI | `SettingsRootScreen.kt` |
 | `SETTINGS_PROVIDER_CARD` | Settings → Models provider card extension area | `SettingsModelsPane.kt` |
 | `SIDEBAR_PANEL` | Left navigation drawer panel | `MainActivity.kt` |
-| `RIGHT_PANEL` | Chat right sidebar (fullscreen below 768px); `sidebar.right.pane.*` mapped, plugin tab host pending | `RightSidebarPanel.kt` |
+| `RIGHT_PANEL` | Chat right sidebar (fullscreen below 768px); contributions with `tabTitle` become tabs | `RightSidebarPanel.kt` / `NativeRightPaneTabs.kt` |
 | `COMPOSER_DOCK` | Above the input card (dock pills / status bar) | `ChatScreen.kt` |
 | `COMPOSER_LEFT` | Left side of the input bar (next to the plus button) | `ChatScreen.kt` |
 | `COMPOSER_RIGHT` | Right side of the input bar (send/stop button) | `ChatScreen.kt` |
@@ -62,9 +62,9 @@
 | `sidebar.workspaces.session.menu.item` | `SIDEBAR_PANEL` | Wired |
 | `sidebar.workspaces.session.row.action` | `SIDEBAR_PANEL` | Wired |
 | `sidebar.panellist` | `SIDEBAR_PANEL` | Wired |
-| `sidebar.right.pane.tab` | `RIGHT_PANEL` | Mapped; plugin tab host pending (built-in tabs are app-owned) |
-| `sidebar.right.pane.tab.title` | `RIGHT_PANEL` | Mapped; host pending |
-| `rightbar.session` | `RIGHT_PANEL` | Mapped; host pending |
+| `sidebar.right.pane.tab` | `RIGHT_PANEL` | Wired (plugin tabs; built-in tabs are app-owned) |
+| `sidebar.right.pane.tab.title` | `RIGHT_PANEL` | Wired (title comes from `tabTitle`) |
+| `rightbar.session` | `RIGHT_PANEL` | Wired |
 | `shell.overlay` | `PLUGIN_OVERLAY` | Wired |
 | `settings.section` | `SETTINGS_SHEET` | Wired |
 | `settings.general.item` | `SETTINGS_SHEET` | Wired |

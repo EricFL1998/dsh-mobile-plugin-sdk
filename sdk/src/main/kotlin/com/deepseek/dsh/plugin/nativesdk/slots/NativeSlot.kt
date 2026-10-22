@@ -37,10 +37,11 @@ enum class NativeSlot {
     /**
      * 聊天页右侧栏（官方 `sidebar.right.pane.tab` / `.title`、`rightbar.session`）。
      *
-     * 现状：App 的右侧栏标签（Files / Document / Plan / Deliverables / Terminal /
-     * Schedule / Browser）由 App 自身实现；这个落点已映射，但**插件标签的宿主容器
-     * 尚未接入**——插件应继续用 Web UI 注册右侧栏标签，等 App 提供按注册项生成
-     * 标签的宿主后再迁移。窄屏下右侧栏是整屏覆盖（官方 <768px 行为）。
+     * 插件在这一落点注册贡献并设置 [SlotContribution.tabTitle]，App 就会在聊天页
+     * 右侧栏追加一个同名标签（内置标签 Files / Document / Plan / Deliverables /
+     * Terminal / Schedule / Browser 排在最前）。标签内容就是贡献的 [Render]，
+     * 需要的数据请通过 [PluginHostApi] 的 RPC 自行读取。窄屏下右侧栏是整屏覆盖
+     * （官方 <768px 行为）。
      */
     RIGHT_PANEL,
 
@@ -136,6 +137,15 @@ abstract class SlotContribution {
     open val order: Int = 0
     open val mode: RenderMode = RenderMode.ENHANCE
     open val isOfficial: Boolean = false
+
+    /**
+     * 右侧栏标签标题。只对 [NativeSlot.RIGHT_PANEL] 的贡献有意义：
+     * 非 null 时，App 会在聊天页右侧栏为这个贡献新增一个同名标签，标签内容
+     * 就是这个贡献的 [Render]。多个贡献按 [order] 排序，App 内置标签排在最前。
+     *
+     * 插件自行负责本地化（直接用当前语言返回字符串即可）。
+     */
+    open val tabTitle: String? = null
 
     /** 渲染这段内容。 */
     @Composable

@@ -40,6 +40,10 @@ class DemoSlotContribution(
     override val supportedTypes: Set<String> = setOf("demo.slot")
     override val order: Int = 100
 
+    /** 右侧栏落点带标题时，App 会为这个 Demo 贡献新增一个同名标签。 */
+    override val tabTitle: String? =
+        if (slot == NativeSlot.RIGHT_PANEL) "Demo" else null
+
     @Composable
     override fun Render(spec: JsonObject, theme: PluginTheme, host: PluginHostApi) {
         if (slot in blockSlots) {
@@ -54,6 +58,7 @@ class DemoSlotContribution(
             NativeSlot.SETTINGS_SHEET,
             NativeSlot.SETTINGS_PROVIDER_CARD,
             NativeSlot.SIDEBAR_PANEL,
+            NativeSlot.RIGHT_PANEL,
             NativeSlot.TOOL_VIEW_SHEET,
             NativeSlot.CHAT_STREAM,
             NativeSlot.WEB_ISLAND_FULL,

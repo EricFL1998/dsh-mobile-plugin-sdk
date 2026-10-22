@@ -871,3 +871,20 @@ plugin UI coverage check OK
 | 假设原生端在场（JS 功能依赖 APK） | 降级契约 |
 | 更改已发布的 `dsh.plugin.id` | 身份锚定 |
 | 更换签名后同 id 上架 | 防掉包 |
+
+
+## 右侧栏标签（RIGHT_PANEL）
+
+插件可以让 App 的聊天右侧栏多一个自己的标签：在 `NativeSlot.RIGHT_PANEL` 注册一个
+`SlotContribution` 并设置 `tabTitle` 即可（内置 Files / Document / Plan /
+Deliverables / Terminal / Schedule / Browser 始终排在最前）：
+
+```kotlin
+SlotRegistry.register(object : SpecSlotContribution(NativeSlot.RIGHT_PANEL) {
+    override val tabTitle: String = "我的面板"
+    override val order: Int = 10
+})
+```
+
+标签内容就是该贡献的 `Render`。右侧栏标签没有槽位级 spec，需要的数据请通过
+`PluginRpcHost.callRpc` 读取；标签标题请按当前语言直接返回字符串。

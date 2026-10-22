@@ -15,7 +15,7 @@
 | `SETTINGS_SHEET` | 设置页 / 插件页的页面入口与整页 | `SettingsRootScreen.kt` |
 | `SETTINGS_PROVIDER_CARD` | 设置 → 模型页 provider 卡片扩展区 | `SettingsModelsPane.kt` |
 | `SIDEBAR_PANEL` | 左侧导航抽屉面板 | `MainActivity.kt` |
-| `RIGHT_PANEL` | 聊天页右侧栏（窄屏整屏覆盖）；`sidebar.right.pane.*` 已映射，插件标签宿主待接入 | `RightSidebarPanel.kt` |
+| `RIGHT_PANEL` | 聊天页右侧栏（窄屏整屏覆盖）；带 `tabTitle` 的贡献会成为一个标签 | `RightSidebarPanel.kt` / `NativeRightPaneTabs.kt` |
 | `COMPOSER_DOCK` | 输入卡片上方（dock 药丸/状态条） | `ChatScreen.kt` |
 | `COMPOSER_LEFT` | 输入栏左侧（加号旁） | `ChatScreen.kt` |
 | `COMPOSER_RIGHT` | 输入栏右侧（发送/停止按钮） | `ChatScreen.kt` |
@@ -61,9 +61,9 @@
 | `sidebar.workspaces.session.menu.item` | `SIDEBAR_PANEL` | 已接入 |
 | `sidebar.workspaces.session.row.action` | `SIDEBAR_PANEL` | 已接入 |
 | `sidebar.panellist` | `SIDEBAR_PANEL` | 已接入 |
-| `sidebar.right.pane.tab` | `RIGHT_PANEL` | 已映射，插件标签宿主待接入（内置标签由 App 实现） |
-| `sidebar.right.pane.tab.title` | `RIGHT_PANEL` | 已映射，宿主待接入 |
-| `rightbar.session` | `RIGHT_PANEL` | 已映射，宿主待接入 |
+| `sidebar.right.pane.tab` | `RIGHT_PANEL` | 已接入（插件标签，内置标签由 App 实现） |
+| `sidebar.right.pane.tab.title` | `RIGHT_PANEL` | 已接入（标签标题取 `tabTitle`） |
+| `rightbar.session` | `RIGHT_PANEL` | 已接入 |
 | `shell.overlay` | `PLUGIN_OVERLAY` | 已接入 |
 | `settings.section` | `SETTINGS_SHEET` | 已接入 |
 | `settings.general.item` | `SETTINGS_SHEET` | 已接入 |
