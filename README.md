@@ -3,15 +3,14 @@
 > 仓库：<https://github.com/EricFL1998/dsh-mobile-plugin-sdk>  
 > 在线文档：<https://ericfl1998.github.io/dsh-mobile-plugin-sdk/>（GitHub Pages）
 >
-> 为已有 DSH JS 插件增加一个 **Kotlin/Compose 原生 UI 伴侣 APK**：Host 侧逻辑不动，
-> App 自动识别伴侣 APK，把插件 UI 从 WebView/转译树升级成原生界面。
+> 为已有的 DSH JS 插件增加一个 **Kotlin/Compose 原生 UI 伴侣 APK**：JS 侧逻辑不动，
+> App 识别伴侣 APK 后把插件 UI 从 WebView 换成原生界面；不安装 APK 时继续使用 Web UI。
 >
-> 本 README 按当前 App 的真实接入流程编写（2026-10-21，SDK API v1）。
-> 适用 App：`com.dsh.mobile`，minSdk 26，compileSdk 35，Kotlin 2.1.10。
+> SDK API v1 · 适用 App：`com.dsh.mobile` · minSdk 26 · compileSdk 35 · Kotlin 2.1.10。
 
 ---
 
-## 0. 先理解分工
+## 0. 这是什么，怎么分工
 
 一个插件由两份产物组成：
 
@@ -20,23 +19,51 @@
 | JS 插件包 | Host（手机内 proot/Node） | 插件作者已有 |
 | 伴侣 APK | App 进程内，Dex 加载 | 本文档新增 |
 
-职责边界（也是审核底线）：
+职责边界：
 
-1. **逻辑永远在 Host**：OAuth、token 刷新、模型调用、数据查询都在 `lib/index.js`；
+1. **逻辑永远在 Host**：登录态、网络请求、模型调用、数据查询都留在 `lib/index.js`；
    原生 APK 只画 UI、回传用户意图。
 2. **凭证不出 Host**：APK 不接触 token / API key；需要数据就通过 RPC 向 Host 要。
 3. **原生是增强，不是必需**：不装 APK，插件继续走 Web UI；装了才启用原生页面/落点。
-4. **渲染无状态**：Compose 只消费 Host 推来的 spec，不建立网络连接。
+4. **渲染无状态**：Compose 只消费 Host 返回的数据，不建立网络连接。
 
-一次原生交互的完整链路：
+原生 UI 读数据走一条链路：
+
+```
+原生页面启动
+  → PluginRpcHost.callRpc("demo.status", {})
+  → Host 插件返回 { result: { ok: true, value } }
+  → Compose 用 value 渲染
+```
+
+写数据走另一条链路（不在 APK 里改业务状态）：
 
 ```
 用户点击原生按钮
-  → PluginRpcHost.callRpc(方法, JSON)          // APK → Host
-  → Host 插件执行逻辑（OAuth / 查询）
-  → client/refresh 推送新 spec / 事件            // Host → App
-  → 原生页面重组（重读 RPC 或接收 refresh）
+  → host.dispatchEvent("dsh-plugin-demo#demo", "submit", { actionId: "bump", by: 1 })
+  → bridge 命中 JS 插件的 mobileUi 动作
+  → Host 状态变化，bridge 排 client/refresh
+  → 原生页收到 refreshEvents 后重读 RPC
 ```
+
+仓库里的 **Demo 插件**是唯一示例，JS 与原生两半都完整可跑：
+
+| 项 | 值 |
+| --- | --- |
+| JS 包 | `dsh-plugin-demo`（0.1.0） |
+| 伴生 `pluginId`（manifest `dsh.plugin.id`） | `demo.native-ui` |
+| 伴生 APK 包名 | `com.dsh.mobile.dsh_plugin_demo` |
+| manifest `dsh.plugin.jsPackage` | `dsh-plugin-demo` |
+| 设置页组件身份 `componentId` | `dsh-plugin-demo#demo` |
+| dock 组件身份 `componentId` | `dsh-plugin-demo#demo-dock` |
+
+建议阅读顺序：
+
+1. 本 README：接通 AAR、manifest、页面/落点、RPC、构建与发布；
+2. [`demo/README.md`](demo/README.md)：Demo 插件的身份、契约、构建与真机验证；
+3. [`docs/plugin-sdk-guide.md`](docs/plugin-sdk-guide.md)：完整开发规范；
+4. [`docs/source-driven-native-ui.md`](docs/source-driven-native-ui.md)：先扫描再实现；
+5. [`docs/publishing.md`](docs/publishing.md)：发布、打 tag 与签名约定。
 
 ---
 
@@ -44,27 +71,61 @@
 
 ```
 dsh-mobile-plugin-native-ui-sdk/
-├─ README.md                         ← 本文件
-├─ slot-mapping.md                   ← 31 个官方 slot → 原生落点 → 宿主位置
-├─ postmortem/slot-discovery.md     ← 首版漏落点的复盘与覆盖闸门
-├─ demo/                             ← 唯一示例：虚构 Demo 插件（覆盖全部落点）
-│  ├─ README.md
-│  └─ native/                        ← Manifest + Kotlin 源码
+├─ README.md                          ← 本文件
+├─ slot-mapping.md                    ← 内置 slot → NativeSlot → 宿主位置
+├─ demo/
+│  ├─ README.md                       ← Demo 插件（JS + 原生）接入说明
+│  ├─ js/                             ← JS 半边：dsh-plugin-demo 0.1.0
+│  │  ├─ package.json
+│  │  ├─ cordis.patch.yml
+│  │  ├─ lib/index.js                 ← 插件入口：name / apply
+│  │  ├─ lib/constants.js             ← RPC 前缀、componentId、settings ns
+│  │  ├─ lib/state.js                 ← 进程内状态（计数 42）
+│  │  ├─ lib/rpc.js                   ← /api/demo.* 路由 + 信封
+│  │  ├─ lib/actions.js               ← mobileUi 动作：bump / reset
+│  │  ├─ lib/catalog.js               ← demo.catalog 返回的注册清单
+│  │  ├─ lib/client.js                ← Web 半边：settings.section + dock
+│  │  ├─ locale/{zh,en}.json
+│  │  └─ test/rpc.test.mjs
+│  └─ native/                         ← 原生半边：demo.native-ui
+│     ├─ build.gradle.kts
+│     └─ src/main/
+│        ├─ AndroidManifest.xml
+│        └─ kotlin/com/dsh/mobile/dsh_plugin_demo/
+│           ├─ DemoPluginService.kt
+│           ├─ DemoNativePlugin.kt
+│           ├─ DemoSettingsPage.kt
+│           ├─ DemoDockContribution.kt
+│           ├─ DemoSlotContribution.kt
+│           └─ DemoRpc.kt
 ├─ docs/
-│  ├─ native-plugin-sdk.md           ← 插件侧完整规范
-│  ├─ native-plugin-host.md          ← App 侧宿主容器与注册表
-│  ├─ plugin-conversion-guide.md     ← Web UI 迁移到原生 UI
-│  ├─ plugin-sdk-guide.md            ← 开发与联调步骤
-│  ├─ mobile-bridge.md               ← Host ↔ App bridge 协议
-│  ├─ slot-inventory.md              ← 自动生成的官方 slot 覆盖清单
-│  └─ pitfalls.md                    ← 踩坑清单（slot/装载/RPC/定位/样式/proot）
-├─ reference/native-host/            ← App 侧 OfficialSlot / NativeSlotHost 参考
-├─ sdk/                              ← SDK 源码与独立构建配置
-└─ artifacts/dsh-native-ui-sdk-release.aar
+│  ├─ plugin-sdk-guide.md             ← 开发与联调步骤
+│  ├─ native-plugin-sdk.md            ← 插件侧契约
+│  ├─ native-plugin-host.md           ← App 侧宿主容器与注册表
+│  ├─ plugin-conversion-guide.md      ← Web UI 迁移到原生 UI
+│  ├─ source-driven-native-ui.md      ← 扫描驱动的接入流程
+│  ├─ mobile-bridge.md                ← Host ↔ App bridge 协议
+│  ├─ publishing.md                   ← 发布与打 tag
+│  ├─ pitfalls.md                     ← 检查清单与最佳实践
+│  ├─ slot-inventory.md               ← App 内置 slot 覆盖清单
+│  ├─ plugin-ui-inventory-example.md  ← Demo 插件的扫描输出（含 .json）
+│  ├─ index.html                      ← GitHub Pages 站点
+│  └─ .nojekyll
+├─ reference/native-host/             ← App 侧宿主参考（NativeHost / NativeSlotHost / SlotPopup）
+├─ sdk/                               ← SDK 源码与独立构建配置
+│  ├─ README.md
+│  ├─ build.gradle.kts
+│  ├─ settings.gradle.kts
+│  ├─ gradle.properties
+│  └─ src/main/kotlin/com/deepseek/dsh/plugin/nativesdk/
+├─ tools/
+│  ├─ plugin_ui_scanner.py            ← 插件源码扫描器
+│  └─ sdk-mapping.json                ← 内置 slot 映射/宿主快照（扫描器独立运行）
+└─ artifacts/
+   └─ dsh-native-ui-sdk-release.aar   ← 预编译 SDK AAR
 ```
 
-> 仓库不打包真实插件示例；`demo/` 是虚构案例。订阅插件的伴生 APK
-> 通过 GitHub Releases 分发。
+> 仓库不打包真实业务插件；`demo/` 是虚构案例，代码可直接跑。
 
 ---
 
@@ -72,7 +133,8 @@ dsh-mobile-plugin-native-ui-sdk/
 
 ### 2.1 用 AAR（推荐）
 
-把 `artifacts/dsh-native-ui-sdk-release.aar` 放进伴侣 APK 的 `libs/`：
+把 [`artifacts/dsh-native-ui-sdk-release.aar`](artifacts/dsh-native-ui-sdk-release.aar) 放进伴侣
+APK 工程的 `libs/`，然后声明依赖：
 
 ```kotlin
 dependencies {
@@ -86,7 +148,8 @@ dependencies {
 }
 ```
 
-伴侣 APK 的 `build.gradle.kts` 还需要：
+AAR 不携带传递依赖，Compose 与序列化库由你的伴侣工程自行声明。`build.gradle.kts`
+还需要：
 
 ```kotlin
 android {
@@ -107,20 +170,35 @@ plugins {
 
 ### 2.2 用源码
 
-把 `sdk/src/main/kotlin/com/deepseek/dsh/plugin/nativesdk/**` 拷进你的 library
-模块（包名保持不变）。`sdk/build.gradle.kts` 是等价独立构建配置，`sdk/README.md`
-说明如何单独编译。
+把 [`sdk/src/main/kotlin/com/deepseek/dsh/plugin/nativesdk/`](sdk/src/main/kotlin/com/deepseek/dsh/plugin/nativesdk/)
+下的源码拷进你的 library 模块（包名保持不变）。源码与 AAR 等价。
+
+`sdk/` 本身是独立 root project，构建方式见 [`sdk/README.md`](sdk/README.md)：用 Android
+Studio 打开该目录，或用兼容 AGP 8.9 的 Gradle 8.11+ 执行 `gradle assembleRelease`。
+**SDK 仓库不带 Gradle Wrapper**，不要在本仓库根目录执行 `./gradlew`。
+
+### 2.3 工具链版本
+
+| 项 | 值 |
+| --- | --- |
+| SDK API | v1（`dsh.plugin.apiVersion = 1`） |
+| compileSdk | 35 |
+| minSdk | 26 |
+| JDK | 17 |
+| Kotlin | 2.1.10 |
+| Compose BOM | 2025.02.00 |
+| kotlinx-serialization | 1.8.0 |
 
 ---
 
 ## 3. 伴侣 APK 最小实现
 
-### 3.0 包名规范（强制）
+### 3.1 包名规范（强制）
 
-> **一个 JS 插件 = 一个 companion APK。** 包括余额鲸鱼这类“Web 注入式浮层”：
-> 也写 companion，通过 `NativeSlot.PLUGIN_OVERLAY` 画浮层，不在 App 里为单个插件
-> 增加 `WEB_OVERLAY` 之类的特例。宿主只提供安全区全屏画布，位置/拖动/吸附/动画
-> 由 companion 自己负责。
+> **一个 JS 插件 = 一个 companion APK。** 包括 Web 注入式浮层这类形态：也写 companion，
+> 通过 `NativeSlot.PLUGIN_OVERLAY` 画浮层，不在 App 里为单个插件增加专用容器类型。
+> 宿主只提供安全区全屏画布，位置/拖动/吸附/动画由 companion 自己负责。
+
 伴侣 APK 的 `applicationId` 和 `namespace` 统一使用：
 
 ```
@@ -132,37 +210,37 @@ com.dsh.mobile.<完整插件名>
 
 | JS 插件完整名 | 伴侣包名 |
 | --- | --- |
-| `dsh-plugin-subscription-oauth` | `com.dsh.mobile.dsh_plugin_subscription_oauth` |
+| `dsh-plugin-demo` | `com.dsh.mobile.dsh_plugin_demo` |
 | `dsh-plugin-my-plugin` | `com.dsh.mobile.dsh_plugin_my_plugin` |
 | `dsh-genui` | `com.dsh.mobile.dsh_genui` |
 
 规则细节：
 
-- 不要缩写成 `com.dsh.mobile.subscription`；`dsh-plugin-` 也是插件名的一部分；
-- 同一 JS 包有多个能力伴侣时，主伴侣用全名，额外能力加 `_<capability>`，
-  例如 Kimi 能力：`com.dsh.mobile.dsh_plugin_subscription_oauth_kimi`；
-- `dsh.plugin.id` 是插件身份，和包名解耦，仍然使用你的反向域名 id；
-- 包名一旦发布不要改，否则会被系统当成另一个 APK。
+- 不要缩写掉 `dsh-plugin-` 前缀，它是插件名的一部分；
+- 同一 JS 包有多个能力伴侣时，主伴侣用全名，额外能力加 `_<capability>`；
+- `dsh.plugin.id` 是插件身份，和包名解耦，使用你自己的反向域名 id；
+- 包名与 `dsh.plugin.id` 一旦发布不要改，否则会被系统或 App 当成另一个插件。
 
-### 3.1 AndroidManifest
+### 3.2 AndroidManifest
+
+Demo 的完整 manifest（[`demo/native/src/main/AndroidManifest.xml`](demo/native/src/main/AndroidManifest.xml)）：
 
 ```xml
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.dsh.mobile.dsh_plugin_my_plugin">
+    package="com.dsh.mobile.dsh_plugin_demo">
 
     <application>
         <service
-            android:name=".MyPluginService"
+            android:name=".DemoPluginService"
             android:exported="true"
             android:permission="com.deepseek.dsh.permission.BIND_PLUGIN">
-
             <meta-data android:name="dsh.plugin.apiVersion" android:value="1" />
             <meta-data android:name="dsh.plugin.minAppVersion" android:value="12" />
-            <meta-data android:name="dsh.plugin.id" android:value="your.plugin.id" />
-            <meta-data android:name="dsh.plugin.name" android:value="我的插件" />
-            <!-- 必须与 JS 插件 package.json 的 name 完全一致 -->
-            <meta-data android:name="dsh.plugin.jsPackage"
-                android:value="dsh-plugin-my-plugin" />
+            <meta-data android:name="dsh.plugin.version" android:value="1" />
+            <meta-data android:name="dsh.plugin.id" android:value="demo.native-ui" />
+            <meta-data android:name="dsh.plugin.name" android:value="Demo 插件" />
+            <!-- 与 demo/js/package.json 的 name 一致；App 据此配对 JS 插件 -->
+            <meta-data android:name="dsh.plugin.jsPackage" android:value="dsh-plugin-demo" />
 
             <intent-filter>
                 <action android:name="com.deepseek.dsh.action.PLUGIN_UI" />
@@ -172,86 +250,91 @@ com.dsh.mobile.<完整插件名>
 </manifest>
 ```
 
-字段说明：
+所有 `dsh.plugin.*` meta-data 都放在 **Service 级**，不是 `<application>` 级：
 
 | meta-data | 含义 |
 | --- | --- |
 | `dsh.plugin.apiVersion` | SDK API 版本，当前 `1` |
-| `dsh.plugin.minAppVersion` | 最低 App versionCode，当前示例 `12` |
-| `dsh.plugin.id` | 插件 id，发布后不可改；组件 id 前缀必须与它一致 |
+| `dsh.plugin.minAppVersion` | 最低 App versionCode，Demo 为 `12` |
+| `dsh.plugin.version` | 伴侣 APK 描述符版本，整数 |
+| `dsh.plugin.id` | 插件 id（`demo.native-ui`），发布后不可改 |
 | `dsh.plugin.name` | 插件详情/原生插件列表展示名 |
-| `dsh.plugin.jsPackage` | 配对的 JS 包名，App 用它在插件详情里归组 |
+| `dsh.plugin.jsPackage` | 配对的 JS 包名，必须与 `package.json` 的 `name` 完全一致 |
 
-### 3.2 Service 入口
+### 3.3 Service 入口
 
 ```kotlin
-class MyPluginService : Service() {
-    override fun onBind(intent: Intent): IBinder = DshPluginBinder(MyNativePlugin())
+class DemoPluginService : Service() {
+    override fun onBind(intent: Intent): IBinder = DshPluginBinder(DemoNativePlugin())
 
     companion object {
+        /** App 在自身进程加载页面时使用的入口；只写 onBind 不会注册原生页面。 */
         @JvmStatic
-        fun plugin(): DshUiPlugin = MyNativePlugin()
+        fun plugin(): DshUiPlugin = DemoNativePlugin()
     }
 }
 ```
 
-App 用 DexClassLoader 把伴侣 APK 加载进自己的进程，再通过
+App 用 `packageContext.classLoader` 把伴侣 APK 加载进自己的进程，再通过
 `com.deepseek.dsh.action.PLUGIN_UI` 找到 Service；不需要跨进程通信。
 
-### 3.3 插件入口类
+### 3.4 插件入口类
 
 ```kotlin
-class MyNativePlugin : DshUiPlugin {
+class DemoNativePlugin : DshUiPlugin {
     override val descriptor = PluginDescriptor(
-        id = "your.plugin.id",
-        name = "我的插件",
+        id = "demo.native-ui",
+        name = "Demo 插件",
         version = 1,
         capabilities = setOf(
             PluginCapabilities.OPEN_URL,
             PluginCapabilities.STORAGE,
             PluginCapabilities.PAGE_ENTRY,
-            PluginCapabilities.TOOL_RENDER,
         ),
     )
 
-    override fun createRenderer(): ComponentRenderer = MyRenderer()
+    override fun createRenderer(): ComponentRenderer = DemoRenderer()
 
     init {
         // 页面型 UI：在设置页/插件页注册入口
-        PageRegistry.register(MySettingsPage())
-        // 嵌入型 UI：在某个落点注册贡献
-        SlotRegistry.register(MyComposerDockContribution())
+        PageRegistry.register(DemoSettingsPage())
+        // 嵌入型 UI：在每个已就绪落点注册贡献
+        DemoSlots.entries
+            .filter { it.hostReady && it.slot != NativeSlot.COMPOSER_DOCK }
+            .forEach { SlotRegistry.register(DemoSlotContribution(it)) }
+        // dock 单独展示 popover + App 菜单材质
+        SlotRegistry.register(DemoDockContribution())
     }
 }
 ```
 
-`descriptor.capabilities` 是白名单：调用未声明的能力会被 Host 拒绝。
-能力常量见 `PluginCapabilities`（OPEN_URL / STORAGE / NOTIFY / SHARE /
-CLIPBOARD / WORKSPACE / TOOL_RENDER / PAGE_ENTRY）。
+`descriptor.capabilities` 是白名单：调用未声明的能力会被 Host 拒绝。能力常量见
+`PluginCapabilities`（OPEN_URL / STORAGE / NOTIFY / SHARE / CLIPBOARD / WORKSPACE /
+TOOL_RENDER / PAGE_ENTRY）。
 
 ---
 
-## 4. 两种 UI 形态
+## 4. 页面与落点
+
+原生 UI 有两种形态，按“整页 / 局部”选择。
 
 ### 4.1 页面型：`PageContent`（设置页 / 插件页）
 
-适合完整管理页（订阅管理、账号设置）。注册后设置页「插件界面」或插件页出现入口，
+适合完整管理页（账号、用量、配置管理）。注册后设置页「插件界面」或插件页出现入口，
 点进去是整页原生 Compose，不再加载 WebView。
 
 ```kotlin
-class MySettingsPage : PageContent {
+class DemoSettingsPage : PageContent {
     override val entry = PageEntry(
-        id = "settings",
-        title = "我的插件",
-        subtitle = "账号与用量",
+        id = "demo",
+        title = "Demo 插件",
+        subtitle = "JS 插件 + 原生伴生：RPC 与落点接入示例（虚构）",
         placement = PageEntry.Placement.SETTINGS,
-        order = 10,
     )
 
     @Composable
     override fun Content(spec: JsonObject, theme: PluginTheme, host: PluginHostApi) {
-        // 直接画页面；需要数据时通过 PluginRpcHost 拉取
-        Text("Hello from native UI", color = theme.colorOnSurface)
+        DemoSettingsContent(theme = theme, host = host, refreshEvents = null)
     }
 }
 ```
@@ -261,46 +344,91 @@ class MySettingsPage : PageContent {
 - `SETTINGS`：设置页「插件界面」分组 → 整页原生设置页；
 - `PLUGINS`：插件页 tab → 整页原生插件页。
 
+设置页被原生接管的两个条件：
+
+1. JS 侧注册 `settings.section` 且 `id = "demo"`；
+2. 伴侣 APK 通过静态工厂加载并注册 `PageEntry(id = "demo", placement = SETTINGS)`。
+
+两者组件身份都是 `dsh-plugin-demo#demo`（`<jsPackage>#<PageEntry.id>`），App 才会跳过
+WebView。只安装 APK、未注册页面时仍走 Web。
+
 ### 4.2 嵌入型：`SlotContribution`（输入栏、消息、工具卡等）
 
-适合局部增强（composer dock 胶囊、消息动作、工具卡片）。落点由 `NativeSlot`
-声明，App 在每个位置放了宿主容器。
+适合局部增强（composer dock 胶囊、消息动作、工具卡片）。落点由 `NativeSlot` 声明，
+App 在每个位置放了宿主容器；没有插件注册时容器不占空间。
 
 ```kotlin
-class MyComposerDockContribution : SlotContribution() {
-    override val slot = NativeSlot.COMPOSER_DOCK
-    override val supportedTypes = setOf("my.usage-pill")
-    override val mode = RenderMode.ENHANCE   // 或 OVERRIDE
+class DemoDockContribution : SlotContribution() {
+    override val slot: NativeSlot = NativeSlot.COMPOSER_DOCK
+    override val supportedTypes: Set<String> = setOf("demo.dock")
+    override val order: Int = 100
 
     @Composable
     override fun Render(spec: JsonObject, theme: PluginTheme, host: PluginHostApi) {
-        val text = spec["text"]?.jsonPrimitive?.contentOrNull ?: return
-        Text(text, style = theme.textCaption, color = theme.colorOnSurfaceVariant)
+        // 在输入栏上方画 "Demo 42" 胶囊；点按用 PluginPopover 展开详情
     }
 }
 ```
 
-App 侧官方控件同样走 slot 通道：
+渲染模式：
 
-- `ENHANCE`：官方默认内容保留，插件内容加在旁边/下方；
-- `OVERRIDE`：插件接管该落点，官方默认隐藏；插件异常/卸载时自动回退官方 UI。
+- `ENHANCE`：内置默认内容保留，插件内容加在旁边/下方；
+- `OVERRIDE`：插件接管该落点，内置默认隐藏；插件异常/卸载时自动回退内置 UI。
 
-完整落点表见根目录 `slot-mapping.md`；当前 30 个官方 slot 全部有原生宿主。
-如果注册了没有宿主的落点，贡献不会显示——先查 `docs/slot-inventory.md`。
+Demo 覆盖 22 个 `NativeSlot` 条目，其中 21 个注入真实界面；`WEB_ISLAND_FULL` 是整岛
+Web 回退容器，Demo 不注入（会整屏覆盖 App），只在 Demo 页展示说明：
 
-### 4.3 通用 spec 渲染器（可选）
+| NativeSlot | 位置 | Demo |
+| --- | --- | --- |
+| `SETTINGS_SHEET` | 设置页 / 插件页入口与整页 | 注入 |
+| `SETTINGS_PROVIDER_CARD` | Provider 卡片 | 注入 |
+| `SIDEBAR_PANEL` | 侧栏面板 | 注入 |
+| `COMPOSER_DOCK` | 输入栏 dock | 注入（`Demo 42` 胶囊 + popover） |
+| `COMPOSER_DOCK_ACTIVITY` | dock activity（tok/s 条目） | 注入 |
+| `COMPOSER_DOCK_USAGE` | dock usage（缓存命中条目） | 注入 |
+| `COMPOSER_DOCK_CONTEXT` | dock context（上下文计量） | 注入 |
+| `COMPOSER_LEFT` | 输入栏左 | 注入 |
+| `COMPOSER_RIGHT` | 输入栏右 | 注入 |
+| `COMPOSER_MODEL` | 模型选择 | 注入 |
+| `COMPOSER_PERMISSION` | 权限选择 | 注入 |
+| `COMPOSER_PLAN` | Plan 模式 | 注入 |
+| `COMPOSER_ATTACHMENTS` | 附件入口 | 注入 |
+| `COMPOSER_BAR` | 整个 composer | 注入 |
+| `CONVERSATION_VIEW` | 会话视图 | 注入 |
+| `SESSION_HEADER_CORNER` | 会话标题角 | 注入 |
+| `COMPOSER_OVERLAY` | 输入框浮层 | 注入 |
+| `PLUGIN_OVERLAY` | 插件浮层 | 注入 |
+| `MESSAGE_ACTION` | 消息动作 | 注入 |
+| `TOOL_VIEW_SHEET` | 工具详情 | 注入 |
+| `CHAT_STREAM` | 聊天流 | 注入 |
+| `WEB_ISLAND_FULL` | 整岛 Web 回退容器 | 不注入（宿主已就绪） |
 
-`ComponentRenderer` 用于把 Host 下发的 JSON spec 画成通用组件；页面和落点也可以
-直接使用它：
+内置 slot 到 `NativeSlot` 的完整映射与宿主位置见 [`slot-mapping.md`](slot-mapping.md)。
+注册了没有宿主的落点，贡献不会显示；先查 [`docs/slot-inventory.md`](docs/slot-inventory.md)。
+
+### 4.3 浮层：`PluginPopover`
+
+Web 侧用锚定浮层的交互，原生侧对应 `PluginPopover`：贴着触发元素显示，材质来自
+`PluginTheme` 的 popup 字段（表面色、发丝边、圆角、菜单阴影），不要用居中 `Dialog`
+或自造 Material Card。Demo 的 dock 胶囊即此用法。
+
+### 4.4 通用渲染器：`ComponentRenderer`
+
+`ComponentRenderer` 把 Host 下发的 JSON spec 画成通用组件；页面和落点也可以直接用它：
 
 ```kotlin
-class MyRenderer : ComponentRenderer {
-    override val supportedTypes = setOf("my.card")
+class DemoRenderer : ComponentRenderer {
+    override val supportedTypes = setOf("demo.card")
+
     @Composable
     override fun Render(spec: JsonObject, host: PluginHostApi) {
         val theme = host.currentTheme()
-        Card(colors = CardDefaults.cardColors(containerColor = theme.colorSurface)) {
-            Text(spec["title"]?.jsonPrimitive?.content ?: "", style = theme.textTitle)
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = theme.shapeCard,
+            colors = CardDefaults.cardColors(containerColor = theme.colorSurface),
+        ) {
+            Text("Demo 组件渲染", style = theme.textTitle, color = theme.colorOnSurface)
         }
     }
 }
@@ -310,42 +438,121 @@ class MyRenderer : ComponentRenderer {
 
 ---
 
-## 5. RPC：原生 UI 怎么读写 Host
+## 5. RPC 与事件
 
-原生页面通过 `PluginRpcHost` 调 Host 插件自己的路由（例如
-`subscription-oauth.status`、`subscription-oauth.login`）。
+原生页面通过 `PluginRpcHost` 调 Host 插件自己的路由（Demo 为 `demo.*`）。方法名由
+JS 插件注册，App 不新增协议。
+
+### 5.1 信封契约
+
+请求体（`payload` 原样传递，不包 `args`）：
+
+```json
+{ "type": "client-request", "rpcId": "…", "method": "demo.status", "payload": {} }
+```
+
+成功响应：
+
+```json
+{ "type": "server-response", "rpcId": "…", "result": { "ok": true, "value": { } } }
+```
+
+业务失败也是 **HTTP 200**，错误放在 `result.error`：
+
+```json
+{ "type": "server-response", "rpcId": "…",
+  "result": { "ok": false, "error": { "code": "demo/unknown-endpoint", "message": "…", "details": {} } } }
+```
+
+传输层错误才用非 200：`400`（JSON 无法解析或信封不匹配）、`415`（非
+`application/json`）。原生端先解信封，再按 `code` 分支，不要匹配文案。
+
+### 5.2 Demo 的 6 个端点
+
+| 端点 | payload | value |
+| --- | --- | --- |
+| `demo.status` | `{}` | `{ greeting, count, lastAction, updatedAt, startedAt, uptimeMs }` |
+| `demo.catalog` | `{}` | `{ plugin, companion, registrations[], endpoints[] }` |
+| `demo.ping` | `{}` | `{ pong: true, serverTime }` |
+| `demo.bump` | `{ by?: number }` | 更新后的 status 快照 |
+| `demo.reset` | `{}` | 重置后的 status 快照 |
+| `demo.echo` | 任意 JSON | `{ received: <原样回显> }` |
+
+错误码：`demo/bad-request`（400）、`demo/unsupported-media-type`（415）、
+`demo/unknown-endpoint`（HTTP 200 + `result.error`）。
+
+### 5.3 原生读：`PluginRpcHost.callRpc`
+
+`callRpc` 是回调式 API。Demo 用顶层扩展把它包成 `suspend`，页面与落点共用：
 
 ```kotlin
-class MySettingsPage : PageContent {
-    // ...
-    @Composable
-    override fun Content(spec: JsonObject, theme: PluginTheme, host: PluginHostApi) {
-        val rpc = host as? PluginRpcHost
-        var text by remember { mutableStateOf("") }
+internal suspend fun PluginRpcHost.demoCall(
+    method: String,
+    payload: JsonObject = JsonObject(emptyMap()),
+): JsonElement? = suspendCancellableCoroutine { continuation ->
+    callRpc(method, payload) { result ->
+        continuation.resume(result.getOrNull())
+    }
+}
 
-        LaunchedEffect(Unit) {
-            rpc?.callRpc("my-plugin.status", JsonObject(emptyMap())) { result ->
-                text = result.getOrNull()?.toString() ?: "读取失败"
-            }
-        }
-        Text(text)
+// 页面里
+val body = rpcHost.demoCall(DemoRpc.STATUS)   // demo.status
+DemoRpc.value(body)?.let { status = DemoRpc.statusOf(it) }
+```
+
+`DemoRpc.value()` 取 `result.value`，`DemoRpc.errorMessage()` 在业务失败时给出可读错误。
+
+### 5.4 原生写：`dispatchEvent` → `mobileUi` 动作 → `client/refresh`
+
+原生控件不执行插件 JS，只上报“哪个组件、哪个动作、什么 payload”：
+
+```kotlin
+val payload = buildJsonObject {
+    put("actionId", "bump")
+    put("by", 1)
+}
+host.dispatchEvent(DemoRpc.PAGE_COMPONENT_ID, "submit", payload) // dsh-plugin-demo#demo
+```
+
+完整链路：
+
+```
+host.dispatchEvent(componentId, "submit", payload)
+  → App bridge 调 client-slots/dispatch
+  → JS 插件 mobileUi 动作（demo/js/lib/actions.js）
+  → Host 状态变化，bridge 排 client/refresh
+  → 原生页收到 refreshEvents 后重读 RPC
+```
+
+页面按组件身份过滤刷新事件，只重拉自己关心的组件：
+
+```kotlin
+LaunchedEffect(refreshEvents) {
+    refreshEvents?.collect { componentId ->
+        if (componentId == DemoRpc.PAGE_COMPONENT_ID || componentId == DemoRpc.JS_PACKAGE) refresh()
     }
 }
 ```
 
-约定：
+事件名由 bridge 限定为 `press` / `input` / `toggle` / `submit`；Demo 统一用 `submit`。
+纯写操作也可以直接走 RPC（Demo 的「重置」就是 `demo.reset`）。
 
-- 方法名由 JS 插件注册，App 不新增协议；
-- 返回值是 Host 的 RPC 信封：`result.value` 是插件自己的 JSON；
-- 失败时回调 `Result.failure`，原生 UI 应显示可读错误，不要静默；
-- Host 需要用 `client/refresh` / bridge `dispatch` 推送状态变化，页面据此重读；
-- 长耗时操作（OAuth 轮询）不要在 Compose 组合里做，交给 Host。
+### 5.5 最佳做法
+
+- 组件身份必须是 JS 实际注册的 `<jsPackage>#<slot 内 id>`；写错时 bridge 找不到动作；
+- 异步回调更新页面前先检查 `PageLifecycle.LocalIsActive.current`，避免用户返回后继续写入
+  已离开的页面；
+- 原生端只展示 `result.value` 里的纯展示数据，不自己维护业务状态；
+- 长耗时逻辑留在 Host，不要在 Compose 组合里做阻塞调用；
+- 失败要有可读错误与重试入口，不要静默；
+- 首屏 Host 未就绪时退避重试（Demo dock 为 800ms / 2s），之后按 `client/refresh` 或
+  周期轮询重读。
 
 ---
 
 ## 6. 主题与能力
 
-所有颜色/字号/圆角从 `PluginTheme` 取，不要硬编码：
+所有颜色/字号/圆角从 `PluginTheme` 取，不硬编码：
 
 ```kotlin
 val theme = host.currentTheme()
@@ -369,122 +576,197 @@ if (host.requestCapability(PluginCapabilities.OPEN_URL)) {
 
 ---
 
-## 7. 安装与联调（真实流程）
+## 7. 降级
 
-### 7.1 先装 JS 插件
+原生层永远是增强，不是必需：
 
-App → 抽屉 → **Plugin Market & Ecosystem → 插件 → 添加插件**，输入 npm 包名
-（例如 `dsh-plugin-subscription-oauth`）或 GitHub 地址，安装并启用。
+| 场景 | 行为 |
+| --- | --- |
+| 用户未装伴侣 APK | 插件走 Web UI（完整界面），功能完整 |
+| APK 已装但 ABI 不兼容 | 显示“插件需更新”，降级 Web UI |
+| `supportedTypes` 未命中 spec 类型 | 该组件降级，其余原生 |
+| 渲染器抛异常 | 错误围栏捕获，显示占位块，不影响 App 与其他插件 |
+| 用户卸载 APK | 即时摘除渲染位，回退 Web UI |
 
-安装后 Host 启动时会：
+**因此**：JS 侧功能必须在纯 Web 下完整可用，不得假设原生端在场。Demo 的 Web 回退在
+[`demo/js/lib/client.js`](demo/js/lib/client.js)：它注册 `settings.section(id = "demo")` 与
+`conversation.composer.dock(id = "demo-dock")`，用
+`connection.rpc.call("/api", "demo.status")` 读同一份 Host 状态。
 
-- 把插件挂进 profile；
-- 扫描已安装插件包中声明的 HTTPS 域名并写入 hosts（无需手工加域名）；
-- 插件首次创建数据目录失败时，App 会从错误中解析路径并补建后重试（proot 兼容）。
+---
 
-### 7.2 再装伴侣 APK
+## 8. 先扫描插件源码，再写原生 UI（推荐第一步）
 
-从 GitHub Releases 下载伴生 APK（首个发布见第 9 节），或安装你自己构建的 APK：
+扫描器读取插件自己的源码，得到 slot / entry / component / RPC / UI 树与缺口；不需要
+截图，也不需要 App 仓库。完整流程见
+[`docs/source-driven-native-ui.md`](docs/source-driven-native-ui.md)。
 
 ```bash
-adb install -r dsh-plugin-subscription-oauth-companion-1.0.0.apk
+python tools/plugin_ui_scanner.py \
+  --plugin demo/js \
+  --companion demo/native/src/main/kotlin \
+  --check
 ```
 
-安装/卸载后回到 App 前台会触发重扫（App `onResume` + PackageManager 广播）。
+说明：
 
-### 7.3 验证
+- `--plugin` 指向插件包根目录，优先读 `lib/*.js.map`（内嵌原始 TSX），其次 `src/*.tsx`，
+  最后回退编译后的 `lib/client.js`；
+- `--companion` 让扫描器检查伴侣源码是否真的注册了对应 `NativeSlot` / `PageContent`；
+- 扫描器自带 [`tools/sdk-mapping.json`](tools/sdk-mapping.json) 快照（内置 slot 映射与
+  宿主覆盖），在 SDK 仓库根目录可直接运行；
+- 需要核对 App 仓库里的宿主源码时，可加可选参数 `--root <App 仓库>`；日常接入不需要。
+
+Demo 的扫描输出见
+[`docs/plugin-ui-inventory-example.md`](docs/plugin-ui-inventory-example.md)：
+2 个注册落点全部映射、宿主就绪、伴生实现，`--check` 通过。
+
+```text
+$ python tools/plugin_ui_scanner.py --plugin demo/js \
+    --companion demo/native/src/main/kotlin --check
+plugin UI coverage check OK
+```
+
+按报告映射到原生实现：
+
+| 扫描结果 | 原生接入方式 |
+| --- | --- |
+| `settings.section` 页面 | `PageContent` + `PageRegistry` |
+| `conversation.composer.dock` 条目 | `SlotContribution`（`COMPOSER_DOCK`） |
+| 内置控件（输入栏、dock 读数） | `OfficialSlot` 包装，可单项 ENHANCE/OVERRIDE |
+| 信息型卡片/列表 | `SpecSlotContribution` + dsh-ui spec |
+| 插件 RPC / `useProjection` | `PluginRpcHost.callRpc`，不新增 Host 协议 |
+
+内置 slot 与宿主的一致性由 `tools/sdk-mapping.json` 快照与 App 侧的
+`SlotCoverageTest` 维护；详见 [`docs/source-driven-native-ui.md`](docs/source-driven-native-ui.md)。
+
+---
+
+## 9. 构建与联调 Demo
+
+### 9.1 前置条件
+
+- App 开发仓库（提供 Gradle Wrapper、版本目录与 `:plugin:native-sdk` 模块）；
+- 一台安装了 App 的 Android 设备，开启 USB 调试；
+- Node.js ≥ 20（跑 Demo 的 JS 自测）；
+- Python 3（跑扫描器）。
+
+SDK 仓库自身不带 Gradle Wrapper，`demo/native` 的构建在 App 仓库里完成。
+
+### 9.2 构建伴侣 APK
+
+把 `demo/native` 复制到 App 仓库的 `samples/demo-native`，在 App 仓库
+`settings.gradle.kts` 中加入：
+
+```kotlin
+include(":samples:demo-native")
+```
+
+然后在 **App 仓库根目录**执行：
+
+```bash
+./gradlew :samples:demo-native:assembleDebug
+```
+
+产物：
+
+```text
+samples/demo-native/build/outputs/apk/debug/demo-native-debug.apk
+```
+
+`demo/native/build.gradle.kts` 使用 App 仓库的版本目录，并依赖 App 内的
+`:plugin:native-sdk` 模块；为你自己的插件构建时，改用第 2 节的 AAR 或 `sdk/` 源码。
+
+### 9.3 安装
+
+```bash
+# 1) JS 插件安装到 Host profile（本地路径）
+dsh plugin --profile web add ./demo/js
+
+# 2) 安装伴侣 APK
+adb install -r samples/demo-native/build/outputs/apk/debug/demo-native-debug.apk
+```
+
+安装/卸载 APK 后回到 App 前台会触发重扫（`onResume` + PackageManager 广播）。
+
+### 9.4 自测
+
+```bash
+# RPC / 动作 / 状态隔离（无需 Host、Android、网络）
+node --test demo/js/test/rpc.test.mjs
+
+# 扫描器：JS 注册的 2 个落点都有 NativeSlot 映射、宿主与伴生实现
+python tools/plugin_ui_scanner.py \
+  --plugin demo/js \
+  --companion demo/native/src/main/kotlin \
+  --check
+```
+
+### 9.5 真机验证
 
 1. **插件页 → 原生插件**：能看到伴侣条目；
-2. **插件详情**：显示「包含的组件」及组件数量；`kimi-oauth`/`subscription`
-   应该显示为「原生」且开关打开、运行状态正常；
-3. **设置页**：出现 `Subscriptions`（或你的 PageEntry 标题）入口，点进去是原生页面；
-4. **输入栏**：`COMPOSER_DOCK` 等落点出现插件内容；
-5. 未安装 APK 时，同一插件回退 Web UI。
+2. **插件详情**：显示「包含的组件」及组件数量，Demo 两个组件显示为「原生」且开关打开；
+3. **设置页**：出现「Demo 插件」入口，点进去是原生页面，显示计数、上次动作、更新时间；
+4. **输入栏**：dock 出现 `Demo 42` 胶囊；点按 popup 紧贴胶囊，使用 App 菜单材质；
+5. **写链路**：点「服务端 +1」后计数变化；点「重置」回到 42；
+6. **回退**：卸载 Demo APK 后，设置页与 dock 回到 Web 版本，仍能读 `demo.status`。
 
-App 不会主动“发现”APK 内部页面：必须同时满足
-`jsPackage` 匹配 + 插件已启用 + `apiVersion`/`minAppVersion` 兼容。
-
-### 7.4 调试
+### 9.6 调试
 
 ```bash
 # App 日志
 adb logcat | grep -E "NativeHost|DshPlugin|plugin"
 
-# 插件页的运行状态/组件数量是第一个检查点
-# 如果插件详情「包含的组件」为 0：
-#   - dsh.plugin.jsPackage 与 JS package.json name 不一致
-#   - 插件被禁用
-#   - APK 安装后未触发重扫（切后台再回前台）
-```
-
-原生页面 RPC 报错时，先看 Host 日志：
-
-```bash
+# Host 日志
 adb shell run-as com.dsh.mobile ls -t files/logs
 adb shell run-as com.dsh.mobile cat files/logs/host_<最新>.log
 ```
 
----
+插件详情「包含的组件」为 0 时，按顺序检查：
 
-## 8. 当前 App 已有的 proot 兼容（不需要插件处理）
+- `dsh.plugin.jsPackage` 与 JS `package.json` 的 `name` 是否完全一致；
+- 插件是否已启用；
+- APK 安装后是否触发重扫（切后台再回前台）。
 
-- **插件数据目录自愈**：RPC 返回 `ENOENT/ENOSYS ... mkdir '<path>'` 时，App 会
-  在 rootfs 内补建目录并自动重试一次，适用于所有插件；
-- **插件域名预解析**：Host 启动时扫描已安装插件包里的 `https://` 域名并写 hosts；
-- **会话目录转义**：会话落盘目录会把工作区非 ASCII 字符编码成 `~XXXX`，App 按同
-  规则预建，避免 Host mkdir 失败；
-- **bash 输出兼容**：proot 下 bash 结果可能缺少 cwd，runtime 补丁允许该字段缺失，
-  工具结果不会因 schema 校验失败。
+RPC 报错时先看 Host 日志与信封里的 `result.error.code`。
 
 ---
 
-## 9. Demo 插件与伴生 APK 发布
+## 10. 发布
 
-### 9.1 Demo 插件（唯一示例）
+### 10.1 发布物
 
-`demo/native` 是一个**虚构的 Demo 插件**，不对应任何真实业务：
+| 发布物 | 去哪里 | 谁消费 |
+| --- | --- | --- |
+| JS 插件 | npm（`dsh-plugin-*`） | Host 的 `dsh plugin add` / 插件页「添加插件」 |
+| 伴侣 APK | GitHub Releases（`.apk` asset） | 插件商店、系统安装器 |
+| SDK AAR（SDK 仓库自身） | GitHub Releases（`.aar` asset） | 插件作者编译伴侣 APK |
 
-- 包名 `com.dsh.mobile.dsh_plugin_demo`；
-- 设置页 `PageContent`；
-- 21 个 `NativeSlot` 全部注册演示贡献；
-- dock 使用 `PluginPopover` 展示贴锚点、App 菜单材质；
-- 所有数据都是本地假数据，不联网、不登录。
+一个插件可以只发 JS，也可以 JS + APK 成对发布。只发 APK 时，APK 必须通过
+`dsh.plugin.jsPackage` 指向可安装的 JS 插件。
 
-详见 [`demo/README.md`](demo/README.md)。
+### 10.2 Demo 的发布示例
 
-### 9.2 首个伴生 APK
-
-订阅插件的首个伴生 APK 通过 GitHub Releases 分发：
-
-- Release：<https://github.com/EricFL1998/dsh-mobile-plugin-sdk/releases/tag/v1.0.0>
-- 资产：`dsh-plugin-subscription-oauth-companion-1.0.0.apk`
-- 包名：`com.dsh.mobile.dsh_plugin_subscription_oauth`
-- 签名：debug（首个测试版；正式分发前换 release keystore）
+- JS 包：`dsh-plugin-demo`（npm，0.1.0）；
+- 伴侣 APK：`dsh-plugin-demo-companion-1.0.0.apk`，包名
+  `com.dsh.mobile.dsh_plugin_demo`，`dsh.plugin.id = demo.native-ui`；
+- tag / Release：`v1.0.0`；
+- 签名：测试版可用 debug 签名，正式分发前换 release keystore。
 
 ```bash
-adb install -r dsh-plugin-subscription-oauth-companion-1.0.0.apk
-```
-
-安装后到插件页「原生插件」确认条目与组件数量。
-
-### 9.3 如何发布、如何打 tag
-
-发布分三件事：JS 插件发 npm、伴生 APK 发 GitHub Release、仓库打
-`dsh-mobile-plugin` topic 让插件商店能发现。
-
-最小流程：
-
-```bash
-# 1) JS 插件
+# 1) JS 插件（在插件仓库根目录）
 npm publish --access public
 
-# 2) 伴生 APK tag + Release（资产名以 .apk 结尾）
-git tag -a v1.0.0 -m "dsh-plugin-example companion 1.0.0"
+# 2) 伴侣 APK tag + Release（资产名以 .apk 结尾）
+git tag -a v1.0.0 -m "dsh-plugin-demo companion 1.0.0"
 git push origin v1.0.0
-gh release create v1.0.0 dsh-plugin-example-companion-1.0.0.apk \
-  --title "v1.0.0" --notes "Companion APK for dsh-plugin-example 1.0.0"
 
-# 3) 商店发现 topic
+# 3) 创建 Release
+gh release create v1.0.0 dsh-plugin-demo-companion-1.0.0.apk \
+  --title "v1.0.0" \
+  --notes "Companion APK for dsh-plugin-demo 0.1.0"
+
+# 4) 商店发现 topic
 gh api -X PUT repos/<owner>/<repo>/topics \
   -f 'names[]=dsh-plugin' \
   -f 'names[]=dsh-mobile-plugin'
@@ -492,33 +774,56 @@ gh api -X PUT repos/<owner>/<repo>/topics \
 
 约定：
 
-- tag 用 `v<js-version>` 或 `v<js-version>-native`，例如 `v0.17.17-kimi-native`；
+- tag 用 `v<js-version>`；只更新伴侣 APK 时可用 `v<js-version>-native`，例如 `v0.1.0-native`；
 - 商店只读 **latest release**，不要发成 prerelease；
-- Release 至少要有一个 `.apk` 资产；
-- 更新用新 tag + 新 Release，不要覆盖旧 asset；
+- Release 至少有一个 `.apk` 资产，资产名以 `.apk` 结尾；
+- 更新用新 tag + 新 Release，不要覆盖已有资产；
 - SDK 仓库自身用 `sdk-v1.0.0` 这类前缀，和插件版本区分。
 
-完整命令、版本对照、签名与更新提醒规则见
-[`docs/publishing.md`](docs/publishing.md)。
+### 10.3 发布 SDK AAR
+
+`sdk/` 是独立工程，构建产物在 `sdk/build/outputs/aar/` 下：
+
+```bash
+# 1) 在 sdk/ 目录构建（Android Studio 或兼容 AGP 8.9 的 Gradle 8.11+）
+gradle assembleRelease
+
+# 2) 回到 SDK 仓库根目录，复制为固定文件名
+cp sdk/build/outputs/aar/*-release.aar artifacts/dsh-native-ui-sdk-release.aar
+```
+
+打 tag 与发布：
+
+```bash
+git tag -a sdk-v1.0.0 -m "DSH Native UI SDK 1.0.0"
+git push origin sdk-v1.0.0
+gh release create sdk-v1.0.0 \
+  artifacts/dsh-native-ui-sdk-release.aar \
+  --title "SDK v1.0.0" \
+  --notes "Native UI SDK AAR"
+```
+
+完整命令、版本对照、签名与更新提醒规则见 [`docs/publishing.md`](docs/publishing.md)。
 
 ---
 
-## 10. 发布前检查清单
+## 11. 发布前检查清单
 
 - [ ] `dsh.plugin.id` 稳定且全局唯一，组件 id 前缀一致；
 - [ ] `dsh.plugin.jsPackage` 与 JS `package.json` 的 `name` 完全匹配；
 - [ ] `dsh.plugin.apiVersion = 1`，`minAppVersion` 不低于目标 App；
 - [ ] 所有网络/凭证逻辑留在 Host，APK 内不出现 token/API key；
 - [ ] 只使用 `PluginTheme` 的颜色/字号/圆角；
-- [ ] 已检查目标落点是否在 `slot-mapping.md` 中有宿主；
+- [ ] 已检查目标落点是否在 [`slot-mapping.md`](slot-mapping.md) 中有宿主；
 - [ ] 未安装 APK 时 Web UI 仍完整可用；
 - [ ] 原生页面有加载/空/错误状态，RPC 失败不静默；
 - [ ] 在深色模式、大字号、横屏下自查布局；
-- [ ] 跑过 App 的 `SlotCoverageTest`（App 侧新增落点时）。
+- [ ] 扫描器 `--check` 通过（插件有、伴侣也有实现）；
+- [ ] `node --test demo/js/test/rpc.test.mjs` 通过。
 
 ---
 
-## 11. 版本
+## 12. 版本
 
 | 项 | 值 |
 | --- | --- |
@@ -529,60 +834,28 @@ gh api -X PUT repos/<owner>/<repo>/topics \
 | Compose BOM | 2025.02.00 |
 | kotlinx-serialization | 1.8.0 |
 | minSdk | 26 |
+| compileSdk | 35 |
 
 不兼容变更会提升 `apiVersion`；App 按 APK 声明的版本加载，不匹配时回退 Web UI。
 
 ---
 
-## 12. 先扫描插件源码，再写原生 UI（推荐第一步）
+## 13. 文档索引
 
-完整流程与数据契约见 **`docs/source-driven-native-ui.md`**。第三方开发者不需要 DSH
-官方仓库，也不需要等用户截图。SDK 包自带插件源码扫描器：
-
-```bash
-python tools/plugin_ui_scanner.py \
-  --plugin /path/to/your-plugin \
-  --companion /path/to/native-companion/src \
-  --write docs/plugin-ui.md \
-  --json docs/plugin-ui.json \
-  --check
-```
-
-传入 `--companion` 后，扫描器会同时检查原生伴侣源码是否真的注册了对应
-`NativeSlot`/`PageContent`；插件有、伴侣没实现的 UI 会直接列出来并让 `--check` 失败。
-
-它会优先读取插件包里的 `lib/*.js.map`（内嵌原始 TSX），没有 map 时读 `src/*.tsx`，
-最后回退到编译后的 `lib/client.js`，输出：
-
-- 注册的 slot / entry / order / component；
-- 每个 slot 对应的 `NativeSlot`、是否已有原生宿主；
-- 组件使用的 RPC 端点、`useProjection` / `useChat` 数据；
-- JSX 组件树、可见文案、按钮动作、locale 文案；
-- 未映射或没有宿主的位置（`--check` 退出码 1）。
-
-示例输出见 `docs/plugin-ui-inventory-example.md`（订阅插件：4 个落点、24 个 RPC）。
-
-按报告映射到原生实现：
-
-| 扫描结果 | 原生接入方式 |
+| 文档 | 内容 |
 | --- | --- |
-| `settings.section` 页面 | `PageContent` + `PageRegistry` |
-| `conversation.composer.dock` 条目 | `SlotContribution`（`COMPOSER_DOCK`） |
-| 官方控件（输入栏、dock 读数） | `OfficialSlot` 包装，可单项 ENHANCE/OVERRIDE |
-| 信息型卡片/列表 | `SpecSlotContribution` + dsh-ui spec |
-| `rpc:*` / `useProjection` | `PluginRpcHost.callRpc`，不新增 Host 协议 |
-
-扫描结果中的 `settings.models.provider-card` 这类没有映射的 slot，会直接列为缺口，
-由 App 补宿主或标记 Web 回退，不再依赖人工发现。
-
-浮层（popover）必须使用 SDK `PluginPopover` 和 `PluginTheme` 的 popup 材质字段，
-贴着触发元素显示，不要用居中 `Dialog` 或自造 Material Card；详见
-`docs/source-driven-native-ui.md` 第 4 节。
-
-App 开发仓库另有 `tools/official_ui_inventory.py`，用于锁定官方 slot/entry 覆盖；
-第三方环境可 `--rootfs <已安装 rootfs>` 运行，同样不需要 upstream 目录。
-
-截图只用于视觉验收，不再作为发现 UI 的来源。
-
-接入前/踩坑时先看 `docs/pitfalls.md`：slot 空白、伴侣装载失败、RPC 401、
-popup 定位/材质、proot bash、扫描器漏项等都有现象/根因/修复记录。
+| [`demo/README.md`](demo/README.md) | Demo 插件的身份、契约、构建与验证 |
+| [`demo/js/README.md`](demo/js/README.md) | Demo 的 JS 半边：RPC、动作、Web 回退 |
+| [`docs/plugin-sdk-guide.md`](docs/plugin-sdk-guide.md) | 原生插件完整开发规范 |
+| [`docs/native-plugin-sdk.md`](docs/native-plugin-sdk.md) | 插件侧 SDK 契约 |
+| [`docs/native-plugin-host.md`](docs/native-plugin-host.md) | App 侧宿主容器与注册表 |
+| [`docs/plugin-conversion-guide.md`](docs/plugin-conversion-guide.md) | Web UI 迁移到原生 UI |
+| [`docs/source-driven-native-ui.md`](docs/source-driven-native-ui.md) | 扫描驱动的接入流程 |
+| [`docs/mobile-bridge.md`](docs/mobile-bridge.md) | Host ↔ App bridge 协议 |
+| [`docs/publishing.md`](docs/publishing.md) | 发布、tag 与签名 |
+| [`docs/pitfalls.md`](docs/pitfalls.md) | 接入检查清单与最佳实践 |
+| [`docs/plugin-ui-inventory-example.md`](docs/plugin-ui-inventory-example.md) | Demo 插件的扫描输出 |
+| [`docs/slot-inventory.md`](docs/slot-inventory.md) | App 内置 slot 覆盖清单 |
+| [`slot-mapping.md`](slot-mapping.md) | 内置 slot → NativeSlot → 宿主位置 |
+| [`sdk/README.md`](sdk/README.md) | SDK 源码与独立构建 |
+| [`reference/native-host/`](reference/native-host/) | App 侧宿主参考实现 |

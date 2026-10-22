@@ -3,12 +3,9 @@
 > **Status: implemented.** The Host plugin lives in its own repository,
 > [`deepseek-harness-mobile-bridge-plugin`](https://github.com/EricFL1998/deepseek-harness-mobile-bridge-plugin)
 > (`dsh-mobile-bridge-plugin`); this document is the design it implements, and
-> [`core/bridge`](../core/bridge) is the Android consumer. Where the shipped
+> `core/bridge` is the Android consumer. Where the shipped
 > code settles a question this document left open, the note is marked
 > **As built**.
->
-> 架构层面的取舍（原生 UI / Web-first 薄壳 / 全 Web 套壳）见
-> [移动端 UI 架构选型](mobile-ui-architecture.md)。
 
 The bridge is a Host-side DSH plugin that exposes the **official web client’s own
 runtime data** to native clients (Android, desktop shells, test harnesses) as a
@@ -144,7 +141,7 @@ entry revision.
 The static component-tree provider was retired on 2026-10-20. The phone renders
 plugin UI through the plugin's **full Web UI** (the real Web client in the
 WebView container), so the static projection into native controls was deleted
-along with the App's `plugin/mobile-ui` renderer.
+along with the App's own mobile-ui renderer.
 
 What survives, and where it now lives:
 
@@ -169,8 +166,8 @@ absent root as "no bundles", so the gate bought nothing and cost correctness.
 tables (`const en = {…}` / `const zh = {…}`), and many packages ship no
 `locale/` directory. The static reader resolves the thunk key through the
 bundle's inline dictionaries, preferring `[locale, base(locale), …configured
-localeTags]`, so the phone shows “订阅” rather than the registration id
-`subscriptions` and follows the client language. Registration rows also carry
+localeTags]`, so the phone shows the bundle's own label rather than the
+registration id and follows the client language. Registration rows also carry
 `labelKey` (additive; clients ignore unknown fields).
 
 ## Provider: `client-slots` additions

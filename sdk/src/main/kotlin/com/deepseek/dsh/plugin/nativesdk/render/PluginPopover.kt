@@ -29,7 +29,7 @@ import com.deepseek.dsh.plugin.nativesdk.theme.PluginTheme
  *
  * 材质来自 [PluginTheme] 的 popup 字段（App 用 `DshMenuCard` 的
  * `menuSurfaceFill` / 发丝边 / 16dp 圆角映射进来），因此插件浮层和模型菜单、
- * 权限菜单等官方弹层看起来是同一套设计，而不是插件自己造一套 Card。
+ * 权限菜单等内置弹层看起来是同一套设计，而不是插件自己造一套 Card。
  *
  * 用法：把触发元素和本组件放进同一个 Box，展开时调用：
  *

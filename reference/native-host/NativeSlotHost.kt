@@ -17,24 +17,24 @@ import com.deepseek.dsh.plugin.nativesdk.slots.SlotRegistry
 import com.deepseek.dsh.plugin.nativesdk.theme.PluginTheme
 import kotlinx.serialization.json.JsonObject
 
-/** 官方默认内容与插件增强内容的排列方式。 */
+/** 内置默认内容与插件增强内容的排列方式。 */
 enum class SlotArrangement {
-    /** 与官方控件并排（输入栏按钮、触发器）。 */
+    /** 与内置控件并排（输入栏按钮、触发器）。 */
     INLINE,
 
-    /** 官方内容在上，插件增强内容在下方（整条栏、整页）。 */
+    /** 内置内容在上，插件增强内容在下方（整条栏、整页）。 */
     BLOCK,
 }
 
 /**
- * 官方控件的 slot 包装：官方默认 UI 通过 [content] 传入，插件贡献按仲裁规则
- * 与默认内容组合。这样官方控件本身也走同一条 slot 通道，插件可以 ENHANCE 或
+ * 内置控件的 slot 包装：内置默认 UI 通过 [content] 传入，插件贡献按仲裁规则
+ * 与默认内容组合。这样内置控件本身也走同一条 slot 通道，插件可以 ENHANCE 或
  * OVERRIDE，而不是只有插件内容才经过 SlotRegistry。
  *
- * - 无 NativeHost/Theme（例如预览/测试）：只渲染官方默认内容；
- * - 插件 OVERRIDE：官方默认隐藏，只渲染该插件；
- * - ENHANCE：官方默认内容 + 插件贡献按 [arrangement] 排列；
- * - 都没有：只渲染官方默认内容。
+ * - 无 NativeHost/Theme（例如预览/测试）：只渲染内置默认内容；
+ * - 插件 OVERRIDE：内置默认隐藏，只渲染该插件；
+ * - ENHANCE：内置默认内容 + 插件贡献按 [arrangement] 排列；
+ * - 都没有：只渲染内置默认内容。
  */
 @Composable
 fun OfficialSlot(

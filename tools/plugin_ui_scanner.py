@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Scan a third-party plugin's own source and recognize its native-UI surface.
 
-Input is the plugin package a developer already has (no DSH upstream checkout
+Input is the plugin package a developer already has (no App source checkout
 needed): either its `src/` TypeScript, its `lib/client.js.map` (which embeds the
 original TSX in `sourcesContent`), or the compiled `lib/client.js`.
 
@@ -257,27 +257,47 @@ def dedupe(items: list[str]) -> list[str]:
 
 
 def parse_mapping(root: Path) -> dict[str, str]:
-    text = (root / MAPPING).read_text(encoding="utf-8")
-    return dict(MAPPING_RE.findall(text))
+    mapping_file = root / MAPPING
+    if mapping_file.is_file():
+        text = mapping_file.read_text(encoding="utf-8")
+        return dict(MAPPING_RE.findall(text))
+    # Standalone SDK checkout: the App source tree is not present, so use the
+    # checked-in snapshot of the App's slot mapping.
+    snapshot = root / "tools/sdk-mapping.json"
+    if snapshot.is_file():
+        data = json.loads(snapshot.read_text(encoding="utf-8"))
+        return {str(key): str(value) for key, value in data.get("mapping", {}).items()}
+    return {}
 
 
 def parse_registry(root: Path) -> set[str]:
-    text = (root / REGISTRY).read_text(encoding="utf-8")
-    return set(slot for _, slot in KOTLIN_CONST_RE.findall(text))
+    registry_file = root / REGISTRY
+    if registry_file.is_file():
+        text = registry_file.read_text(encoding="utf-8")
+        return set(slot for _, slot in KOTLIN_CONST_RE.findall(text))
+    return set()
 
 
 def scan_hosts(root: Path) -> set[str]:
     hosts: set[str] = set()
     pattern = re.compile(r"NativeSlot\.([A-Z_]+)")
+    found_root = False
     for ui_root in UI_ROOTS:
         base = root / ui_root
         if not base.exists():
             continue
+        found_root = True
         for file in base.rglob("*.kt"):
             rel = file.relative_to(root)
             if "samples" in rel.parts:
                 continue
             hosts.update(pattern.findall(file.read_text(encoding="utf-8", errors="ignore")))
+    if not found_root:
+        # Standalone SDK checkout: fall back to the snapshot's host coverage.
+        snapshot = root / "tools/sdk-mapping.json"
+        if snapshot.is_file():
+            data = json.loads(snapshot.read_text(encoding="utf-8"))
+            hosts.update(str(item) for item in data.get("hosts", []))
     return hosts
 
 
@@ -316,6 +336,9 @@ def scan(plugin: Path, root: Path, companion: Path | None = None) -> PluginUI:
     package_name, version, sources, source_list = load_sources(plugin)
     mapping = parse_mapping(root)
     official = parse_registry(root)
+    # Standalone SDK checkout: the mapping snapshot is the authoritative slot list.
+    if not official:
+        official = set(mapping)
     hosts = scan_hosts(root)
     if companion:
         companion_slots, companion_pages, companion_popup, companion_dialog = scan_companion(companion)
@@ -333,7 +356,7 @@ def scan(plugin: Path, root: Path, companion: Path | None = None) -> PluginUI:
                 continue
             slot = name.group(1)
             if slot not in official:
-                warnings.append(f"注册了未知/非官方 slot: {slot} ({path})")
+                warnings.append(f"注册了未知/非内置 slot: {slot} ({path})")
             entry = ID_RE.search(body)
             order = ORDER_RE.search(body)
             mode = MODE_RE.search(body)

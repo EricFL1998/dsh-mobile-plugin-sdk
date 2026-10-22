@@ -1,18 +1,18 @@
 package com.deepseek.dsh.plugin.nativesdk.slots
 
 /**
- * 官方客户端 slot → 原生落点的显式映射表。
+ * 内置客户端 slot → 原生落点的显式映射表。
  *
- * 这张表是「先扫全、再实现」的代码化结果：`DshSlotRegistry` 里的每一个官方
+ * 这张表是「先扫全、再实现」的代码化结果：`DshSlotRegistry` 里的每一个内置
  * slot 必须出现在 [officialToNativeSlot] 或 [explicitlyUnsupported] 中，测试会
- * 在新增官方 slot 时失败，而不是等用户发现界面缺一块。
+ * 在新增内置 slot 时失败，而不是等用户发现界面缺一块。
  *
  * 未接入的 slot 不是“忘了”，而是明确列在 [explicitlyUnsupported]：这些位置
- * 目前由官方内置控件承担，没有插件宿主容器；插件应继续使用 Web UI。
+ * 目前由内置内置控件承担，没有插件宿主容器；插件应继续使用 Web UI。
  */
 object NativeSlotMapping {
 
-    /** 有原生宿主容器的官方 slot。 */
+    /** 有原生宿主容器的内置 slot。 */
     val officialToNativeSlot: Map<String, NativeSlot> = mapOf(
         // 输入区
         "conversation.composer.dock" to NativeSlot.COMPOSER_DOCK,
@@ -57,7 +57,7 @@ object NativeSlotMapping {
     )
 
     /**
-     * `conversation.composer.dock` 的内部条目。官方同一个 slot 下按 id 注册
+     * `conversation.composer.dock` 的内部条目。内置同一个 slot 下按 id 注册
      * activity / usage 两个条目（上下文计量是 dock 的兄弟节点），因此这里也把
      * 它们拆成独立落点，让插件能只替换其中一个读数。
      */
@@ -69,17 +69,17 @@ object NativeSlotMapping {
     )
 
     /**
-     * 官方存在、但 App 还没有原生宿主容器的 slot。
+     * 内置存在、但 App 还没有原生宿主容器的 slot。
      *
-     * 目前为空：所有官方 slot 都已有原生落点与宿主容器。保留这个集合是为了未来
-     * 新增官方 slot 时能显式标记“暂不支持”，而不是让它静默丢失。
+     * 目前为空：所有内置 slot 都已有原生落点与宿主容器。保留这个集合是为了未来
+     * 新增内置 slot 时能显式标记“暂不支持”，而不是让它静默丢失。
      */
     val explicitlyUnsupported: Set<String> = emptySet()
 
-    /** 已映射 + 明确不支持的并集；等于官方 slot 全集。 */
+    /** 已映射 + 明确不支持的并集；等于内置 slot 全集。 */
     val allOfficialSlots: Set<String>
         get() = officialToNativeSlot.keys + explicitlyUnsupported
 
-    /** 查一个官方 slot 的原生落点；未接入返回 null。 */
+    /** 查一个内置 slot 的原生落点；未接入返回 null。 */
     fun destinationFor(officialSlot: String): NativeSlot? = officialToNativeSlot[officialSlot]
 }

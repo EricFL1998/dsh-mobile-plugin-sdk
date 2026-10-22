@@ -34,7 +34,7 @@ import kotlinx.serialization.json.jsonPrimitive
  * 每个组件一个函数，输入是 spec 里的节点 JSON + 主题 + 能力桥。分派入口是
  * [Dispatch]；不识别的类型一律走 [Unsupported] 降级占位。
  *
- * 覆盖清单（与官方 dsh-ui spec 对齐）：
+ * 覆盖清单（与内置 dsh-ui spec 对齐）：
  * text · callout · badge · stat · hero · progress · list · table · keyvalue ·
  * steps · timeline · code · divider · link · image · card · col · row · grid · chart
  *

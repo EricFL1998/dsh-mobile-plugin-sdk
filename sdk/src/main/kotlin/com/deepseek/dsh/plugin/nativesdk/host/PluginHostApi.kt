@@ -21,7 +21,7 @@ interface PluginHostApi {
      * 插件的监听器。插件处理后经 `client/refresh` 推回新 spec，本渲染器随之重组。
      *
      * @param componentId `<pluginId>#<slot 内 id>`，前缀必须等于插件 id。
-     * @param event 事件名（如 `"start-oauth"` / `"refresh"` / `"logout"`）。
+     * @param event 事件名（如 `"submit"` / `"refresh"` / `"reset"`）。
      * @param payload JSON 安全的参数对象。
      */
     fun dispatchEvent(componentId: String, event: String, payload: JsonObject)

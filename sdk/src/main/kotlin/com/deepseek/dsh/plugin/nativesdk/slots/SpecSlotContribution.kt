@@ -18,7 +18,7 @@ import kotlinx.serialization.json.jsonPrimitive
  * 原生端就能渲染大部分信息型 UI。业务动作仍经 [PluginHostApi.dispatchEvent]
  * 回传 Host。
  *
- * 官方 UI / 各插件都可以注册自己的子类，或直接实例化：
+ * 内置 UI / 各插件都可以注册自己的子类，或直接实例化：
  *
  * ```kotlin
  * SlotRegistry.register(SpecSlotContribution(NativeSlot.COMPOSER_DOCK))

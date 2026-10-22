@@ -30,7 +30,7 @@ AAR 不包含传递依赖，需要自行声明 Compose 与序列化依赖（见�
 | `PluginDescriptor` | 插件 id/名称/JS 包名/API 版本 |
 | `PageEntry` / `PageContent` / `PageRegistry` | 设置页、插件页的原生页面 |
 | `NativeSlot` / `SlotContribution` / `SlotRegistry` | 嵌入型落点贡献 |
-| `NativeSlotMapping` | 官方 slot → 落点/显式不支持的显式映射表 |
+| `NativeSlotMapping` | 内置 slot → 落点/显式不支持的显式映射表 |
 | `PluginHostApi` / `PluginRpcHost` | 主题、存储、打开链接、RPC |
 | `PluginTheme` | App 下发主题 token |
 | `SpecRenderer` / `DshUiSpec` | JSON spec 渲染（可选） |

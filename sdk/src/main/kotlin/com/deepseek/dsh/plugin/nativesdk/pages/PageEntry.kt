@@ -8,7 +8,7 @@ import kotlinx.serialization.json.JsonObject
 /**
  * 页面入口：插件在设置页 / 插件页挂一个原生页面的契约。
  *
- * 对应官方槽位 `settings.section`、`settings.general.item`、`plugins.tab`。
+ * 对应内置槽位 `settings.section`、`settings.general.item`、`plugins.tab`。
  * 插件声明一个带标题/图标的入口；用户点进后，App 用 [content] 画整页。
  */
 

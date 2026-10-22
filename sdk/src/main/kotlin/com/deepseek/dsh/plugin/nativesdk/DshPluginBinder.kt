@@ -13,8 +13,8 @@ import com.deepseek.dsh.plugin.nativesdk.contract.DshUiPlugin
  * 用法（插件 APK 侧）：
  *
  * ```kotlin
- * class KimiPluginService : Service() {
- *     override fun onBind(intent: Intent): IBinder = DshPluginBinder(KimiOAuthPlugin())
+ * class DemoPluginService : Service() {
+ *     override fun onBind(intent: Intent): IBinder = DshPluginBinder(DemoNativePlugin())
  * }
  * ```
  *

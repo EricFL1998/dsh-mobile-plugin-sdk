@@ -2,7 +2,7 @@
 
 > 状态：**提案（待评审）**。本文定义 App 为支持「原生 UI 插件商店」要开发的全部通用接口与模块。
 > 适用对象：App（`com.dsh.mobile`）开发团队。
-> 关联文档：[插件侧 SDK 规范](native-plugin-sdk.md)、[移动端 UI 架构选型](mobile-ui-architecture.md)、[移动 bridge 协议](mobile-bridge.md)。
+> 关联文档：[插件侧 SDK 规范](native-plugin-sdk.md)、[移动 bridge 协议](mobile-bridge.md)。
 > 记录时间：2026-10-20。
 
 ## 目录
@@ -30,7 +30,7 @@
 
 设计原则：
 
-1. **增强层定位**：原生插件体系是 Web-first 路线（[mobile-ui-architecture.md](mobile-ui-architecture.md) ADR-006）之外的增强层，不是替代品；Web 兜底永远在场；
+1. **增强层定位**：原生插件体系是 Web-first 路线之外的增强层，不是替代品；Web 兜底永远在场；
 2. **铁律守门**：App 侧实现保证「逻辑在 Host、凭证不出 Host」——`PluginHostApi` 不提供网络/凭证/任意文件口子；
 3. **崩溃不上溯**：任何插件渲染异常被围栏捕获，App 与其他插件不受影响；
 4. **协议复用**：与 Host 的通信全部走现有 bridge（`dispatch` / `client/refresh` / `events`），不发明新协议。
@@ -52,7 +52,7 @@
 
 工作量集中在 ④⑤：前者决定稳定性，后者决定安全边界。
 
-建议落点：新建 `plugin/native-host/` Gradle 模块（与 `plugin/mobile-ui/` 平级），`core/bridge` 复用。
+参考实现：`reference/native-host/` 提供宿主容器与注册表代码，可对照接入。
 
 ---
 
@@ -60,7 +60,7 @@
 
 ```kotlin
 interface PluginDiscovery {
-    /** 当前已装且通过初步校验的插件；状态流，UI 直接订阅 */
+    /** 当前已装且通过初步校验的插件；状态流，UI 直接监听 */
     val plugins: StateFlow<List<InstalledPlugin>>
 
     data class InstalledPlugin(
@@ -268,7 +268,7 @@ interface StoreClient {
 
 ## 9. 模块⑧：管理界面
 
-设置页新增「原生插件」分组（复用 `feature/settings` 骨架）：
+插件页新增「插件商店」分组（复用 `feature/settings` 骨架）：
 
 - **列表**：图标、名称、版本、状态（正常/待更新/身份不符/已停用）、能力声明、签名指纹缩写；
 - **详情页**：能力开关（逐项）、审计记录、卸载入口（跳系统卸载页）；
@@ -281,7 +281,7 @@ interface StoreClient {
 
 ```
 ┌─ App ────────────────────────────────────────────────┐
-│  plugin/native-host/                                  │
+│  reference/native-host/                                  │
 │   PluginDiscovery → SignaturePinner → AbiGate         │
 │        ↓ READY                                        │
 │   PluginHostContainer ─→ PluginHostApiImpl            │
@@ -320,7 +320,8 @@ interface StoreClient {
 ### Phase 1：能力桥与主题
 
 - 交付：⑤⑥，`openUrl` + `storage` 两个能力先行，其余按 SDK 表补齐；
-- 验收：Kimi 示例插件（SDK 文档 §13）端到端跑通 OAuth（dispatchEvent → Host → Custom Tab → 回跳 → 状态刷新）。
+- 验收：Demo 示例插件（SDK 文档「完整示例」）端到端跑通 RPC + 事件
+  （`demo.status` → `dispatchEvent` → `client/refresh`）。
 
 ### Phase 2：信任与管理
 

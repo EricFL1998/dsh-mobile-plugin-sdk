@@ -16,7 +16,7 @@ import kotlinx.serialization.json.JsonObject
  */
 interface ComponentRenderer {
     /**
-     * 本渲染器能画的 spec 类型集合（如 `setOf("kimi.account-card")`）。
+     * 本渲染器能画的 spec 类型集合（如 `setOf("demo.card")`）。
      * App 在命中时才走原生渲染，未命中一律降级到插件的完整 Web 界面。
      */
     val supportedTypes: Set<String>
