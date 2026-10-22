@@ -35,11 +35,12 @@ enum class NativeSlot {
     SIDEBAR_PANEL,
 
     /**
-     * 聊天页右侧栏。承载 `sidebar.right.pane.tab`（标签内容）与
-     * `sidebar.right.pane.tab.title`（标签标题）、`rightbar.session`。
+     * 聊天页右侧栏（官方 `sidebar.right.pane.tab` / `.title`、`rightbar.session`）。
      *
-     * App 在聊天页右侧栏里为插件留一个「插件」标签渲染这个落点；窄屏下右侧栏
-     * 是整屏覆盖（官方 <768px 行为），宽屏才并排显示。
+     * 现状：App 的右侧栏标签（Files / Document / Plan / Deliverables / Terminal /
+     * Schedule / Browser）由 App 自身实现；这个落点已映射，但**插件标签的宿主容器
+     * 尚未接入**——插件应继续用 Web UI 注册右侧栏标签，等 App 提供按注册项生成
+     * 标签的宿主后再迁移。窄屏下右侧栏是整屏覆盖（官方 <768px 行为）。
      */
     RIGHT_PANEL,
 
