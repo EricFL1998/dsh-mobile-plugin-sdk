@@ -269,6 +269,7 @@
       <a href="#mapping">实现</a>
       <a href="#case">案例</a>
       <a href="#validation">校验</a>
+<a href="#publish">发布</a>
 <a href="#ui">UI 规范</a>
       <a href="https://github.com/EricFL1998/deepseek-harness-mobile" target="_blank" rel="noopener">GitHub ↗</a>
     </nav>
@@ -292,6 +293,7 @@
     <a href="#case">案例：Demo 插件接入</a>
     <a href="#validation">校验与 CI</a>
     <a href="#pitfalls">上线检查</a>
+    <a href="#publish">发布与商店发现</a>
     <a href="#ui">UI 设计规范</a>
     <a href="#troubleshooting">操作要点</a>
     <a href="#files">SDK 文件结构</a>
@@ -710,9 +712,52 @@ settings.section                DemoSettingsSection  impl=True
       </div>
     </section>
 
+    <section id="publish">
+      <div class="section-head">
+        <h2><span class="num">12</span>发布与商店发现<a class="anchor" href="#publish">#</a></h2>
+        <p>插件要出现在「插件商店」，必须同时做三件事：给 GitHub 仓库加 topic、打 Release tag、
+        在 Release 里上传 <code>.apk</code> 资产。缺任何一项，商店都不会发现。</p>
+      </div>
+      <div class="grid cols-2">
+        <div class="card"><div class="kicker">1 · 仓库 topic</div><h3>dsh-mobile-plugin</h3>
+        <p>商店索引按 <code>topic:dsh-mobile-plugin</code> 搜索仓库。在仓库页
+        About → Topics 添加，或 <code>gh api -X PUT repos/&lt;owner&gt;/&lt;repo&gt;/topics -f 'names[]=dsh-mobile-plugin'</code>。</p></div>
+        <div class="card"><div class="kicker">2 · Release tag</div><h3>v0.17.18</h3>
+        <p>商店读 <strong>latest release</strong>，tag 是它的锚点。用
+        <code>git tag -a v0.17.18</code> + <code>gh release create v0.17.18 ...</code>；
+        不要发成 prerelease。</p></div>
+        <div class="card"><div class="kicker">3 · APK 资产</div><h3>至少一个 .apk</h3>
+        <p>Release 里必须上传伴侣 APK，资产名以 <code>.apk</code> 结尾；没有资产时详情页会显示
+        「最新 Release 中没有 APK」。</p></div>
+        <div class="card"><div class="kicker">生效时间</div><h3>约 30 分钟</h3>
+        <p>SDK 仓库的 Action 定时生成 <code>docs/store/index.json</code>；App 只读索引，
+        不直接请求 GitHub API。新 Release 最多约 30 分钟进入商店。</p></div>
+      </div>
+      <div class="code-wrap" style="margin-top:16px">
+        <button class="copy">复制</button>
+        <pre><span class="cmt"># 1) 仓库 topic（商店发现）</span>
+gh api -X PUT repos/&lt;owner&gt;/&lt;repo&gt;/topics \
+  -f 'names[]=dsh-plugin' -f 'names[]=dsh-mobile-plugin' -f 'names[]=android'
+
+<span class="cmt"># 2) 打 tag 并推上去（商店读 latest release）</span>
+git tag -a v0.17.18 -m "companion 0.17.18"
+git push origin v0.17.18
+
+<span class="cmt"># 3) 用这个 tag 创建 Release，并上传 APK 资产</span>
+gh release create v0.17.18 dsh-plugin-&lt;name&gt;-companion-0.17.18.apk \
+  --title "v0.17.18" --notes "Companion APK for &lt;js-package&gt; 0.17.18"</pre>
+      </div>
+      <div class="callout warn">
+        <strong>商店里没有？按顺序检查</strong>
+        <p>① 仓库是否公开、topic 是否保存成功；② Release 是否为 latest（不是 prerelease）；
+        ③ 是否有 <code>.apk</code> 资产；④ 索引是否已刷新（最多约 30 分钟）；
+        ⑤ 只看 README 或只推 JS 包不会进商店。</p>
+      </div>
+    </section>
+
     <section id="ui">
       <div class="section-head">
-        <h2><span class="num">12</span>UI 设计规范<a class="anchor" href="#ui">#</a></h2>
+        <h2><span class="num">13</span>UI 设计规范<a class="anchor" href="#ui">#</a></h2>
         <p>设置页、详情页与 popover 统一使用 SDK 的 DshPanel / DshButton 等组件，
         与 App 内置页面同一套底色、圆角、行高与字号。</p>
       </div>
@@ -752,7 +797,7 @@ settings.section                DemoSettingsSection  impl=True
 
     <section id="troubleshooting">
       <div class="section-head">
-        <h2><span class="num">13</span>操作要点<a class="anchor" href="#troubleshooting">#</a></h2>
+        <h2><span class="num">14</span>操作要点<a class="anchor" href="#troubleshooting">#</a></h2>
         <p>按以下顺序完成扫描、认领与验证。</p>
       </div>
       <details open>
@@ -788,7 +833,7 @@ settings.section                DemoSettingsSection  impl=True
 
     <section id="files">
       <div class="section-head">
-        <h2><span class="num">14</span>SDK 文件结构<a class="anchor" href="#files">#</a></h2>
+        <h2><span class="num">15</span>SDK 文件结构<a class="anchor" href="#files">#</a></h2>
         <p>交付包与仓库中的关键文件。</p>
       </div>
       <div class="tree"><b>dsh-mobile-plugin-sdk/</b>
@@ -821,7 +866,7 @@ settings.section                DemoSettingsSection  impl=True
 
     <section id="glossary">
       <div class="section-head">
-        <h2><span class="num">15</span>术语与版本<a class="anchor" href="#glossary">#</a></h2>
+        <h2><span class="num">16</span>术语与版本<a class="anchor" href="#glossary">#</a></h2>
         <p>快速查表。</p>
       </div>
       <div class="table-wrap">

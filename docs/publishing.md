@@ -118,22 +118,47 @@ gh release create v1.0.0 \
 - 资产名以 `.apk` 结尾（大小写不敏感）；
 - 更新 APK 时创建新的 tag + Release，不要覆盖已有资产。
 
-### 2.5 让插件商店发现
+### 2.5 让插件商店发现（tag / topic 必做）
 
-仓库必须带 topic：
+商店不是“发到 npm 就自动出现”，必须同时满足下面三项：
+
+| 项 | 值 | 作用 |
+| --- | --- | --- |
+| 仓库 topic | `dsh-mobile-plugin` | 商店索引按 `topic:dsh-mobile-plugin` 搜索仓库 |
+| Release tag | 例如 `v0.17.18` / `v0.17.18-native` | 商店读 **latest release**，tag 是它的锚点 |
+| Release 资产 | 至少一个 `.apk` | 详情页列出 APK；没有资产会显示“没有 APK” |
+
+仓库必须是公开仓库；tag 对应的 Release 不能是 prerelease（`/releases/latest` 会跳过）。
 
 ```bash
+# 1) 给仓库加 topic（GitHub 仓库页右上角 About → Topics 也可以）
 gh api -X PUT repos/<owner>/<repo>/topics \
   -f 'names[]=dsh-plugin' \
   -f 'names[]=dsh-mobile-plugin' \
   -f 'names[]=android'
+
+# 2) 打 tag 并推上去
+git tag -a v0.17.18 -m "companion 0.17.18"
+git push origin v0.17.18
+
+# 3) 用这个 tag 创建 Release，并上传 APK 资产
+gh release create v0.17.18 dsh-plugin-<name>-companion-0.17.18.apk \
+  --title "v0.17.18" \
+  --notes "Companion APK for <js-package> 0.17.18"
 ```
 
-插件商店的发现规则：
+商店索引由 SDK 仓库的 GitHub Action 定时生成（`docs/store/index.json`，约每 30 分钟
+刷新一次）：
 
-1. `GET https://api.github.com/search/repositories?q=topic:dsh-mobile-plugin` 拉仓库列表；
-2. 点进详情时请求该仓库的 `releases/latest`，列出 `.apk`；
-3. 安装时下载 APK，交给系统安装器。
+1. Action 搜索 `topic:dsh-mobile-plugin` 得到仓库列表；
+2. 对每个仓库读取 `releases/latest` 与 `.apk` 资产，写入索引；
+3. App 只读这份索引，不直接请求 GitHub API；索引生成后最多约 30 分钟生效。
+
+因此：
+
+- 只改 README 不会出现在商店，**必须有 topic + Release（tag）**；
+- 更新 APK 要用新 tag + 新 Release，不要覆盖旧资产；
+- 商店列表没出现时，先检查 topic 是否保存成功、Release 是否 latest、资产是否以 `.apk` 结尾。
 
 ### 2.6 更新提醒
 
