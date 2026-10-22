@@ -303,32 +303,6 @@
   <main>
 <div class="agent-prompt">
   <div class="agent-prompt-head">Throw this prompt to an agent:<span class="mini">Paste it, then replace the 【】/[] placeholders</span></div>
-  <div class="prompt-lang">Chinese prompt</div>
-  <div class="code-wrap">
-    <button class="copy">Copy</button>
-    <pre id="agent-prompt">你是一个 DSH 原生 UI 插件开发 agent。请为我的插件编写伴生 APK：
-
-插件仓库：【owner/repo 或本地路径】
-JS 包名：【package.json 里的 name】
-
-按以下步骤执行：
-1. 阅读 SDK 接入文档：https://ericfl1998.github.io/dsh-mobile-plugin-sdk/ 与 https://github.com/EricFL1998/dsh-mobile-plugin-sdk
-2. 克隆 SDK 仓库到本地，在插件包根目录运行扫描器：
-   python tools/plugin_ui_scanner.py --plugin 【插件包路径】 --check
-3. 根据扫描报告的 slot / entry / component / RPC 选择实现方式：
-   整页用 PageContent，局部落点用 SlotContribution 或 dsh-ui spec。
-4. 设置页使用 SDK 的 DshPanel / DshSectionLabel / DshPanelRow / DshButton / DshSwitchRow；
-   颜色、字号、圆角全部从 PluginTheme 读取，禁止 Material Card/Button 和硬编码色值。
-5. 原生只做 UI：数据通过 PluginRpcHost 调 JS 侧 RPC，用户动作通过 host.dispatchEvent 回传；
-   Web UI 必须保持可用，原生只是增强。
-6. 伴生 manifest 写 dsh.plugin.jsPackage / dsh.plugin.id / apiVersion / minAppVersion；
-   先构建 debug APK，在 App 上验证页面、落点、RPC 与事件闭环。
-7. 发布：GitHub Release tag + .apk 资产，仓库加 topic dsh-mobile-plugin，
-   等商店索引刷新（约 30 分钟）。
-
-完成后输出：新增/修改文件、使用的 slot、RPC 列表、构建命令、APK 路径、未验证项。</pre>
-  </div>
-  <div class="prompt-lang">English prompt</div>
   <div class="code-wrap">
     <button class="copy">Copy</button>
     <pre id="agent-prompt-en">You are a DSH native UI plugin development agent. Write a companion APK for my plugin:

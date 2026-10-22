@@ -303,7 +303,6 @@
   <main>
 <div class="agent-prompt">
   <div class="agent-prompt-head">把这个 prompt 扔给 agent：<span class="mini">Throw this prompt to an agent · 复制后替换【】/[] 里的内容</span></div>
-  <div class="prompt-lang">中文 prompt</div>
   <div class="code-wrap">
     <button class="copy">复制</button>
     <pre id="agent-prompt">你是一个 DSH 原生 UI 插件开发 agent。请为我的插件编写伴生 APK：
@@ -327,32 +326,6 @@ JS 包名：【package.json 里的 name】
    等商店索引刷新（约 30 分钟）。
 
 完成后输出：新增/修改文件、使用的 slot、RPC 列表、构建命令、APK 路径、未验证项。</pre>
-  </div>
-  <div class="prompt-lang">English prompt</div>
-  <div class="code-wrap">
-    <button class="copy">Copy</button>
-    <pre id="agent-prompt-en">You are a DSH native UI plugin development agent. Write a companion APK for my plugin:
-
-Plugin repo: [owner/repo or local path]
-JS package name: [name from package.json]
-
-Steps:
-1. Read the SDK docs: https://ericfl1998.github.io/dsh-mobile-plugin-sdk/ and https://github.com/EricFL1998/dsh-mobile-plugin-sdk
-2. Clone the SDK repo locally and run the scanner in the plugin package root:
-   python tools/plugin_ui_scanner.py --plugin [plugin package path] --check
-3. Based on the scan report's slot / entry / component / RPC, choose an implementation:
-   PageContent for a full page, SlotContribution or dsh-ui spec for a slot.
-4. Settings pages must use the SDK's DshPanel / DshSectionLabel / DshPanelRow / DshButton /
-   DshSwitchRow. Read colors, font sizes and radii from PluginTheme; no Material Card/Button
-   and no hardcoded values.
-5. Native is UI only: fetch data through PluginRpcHost RPC, send user actions via
-   host.dispatchEvent, and keep the Web UI fully functional.
-6. Companion manifest: dsh.plugin.jsPackage / dsh.plugin.id / apiVersion / minAppVersion.
-   Build a debug APK first and verify pages, slots, RPC and event flow on the App.
-7. Publish: GitHub Release tag + .apk asset, add the dsh-mobile-plugin topic, then wait
-   about 30 minutes for the store index to refresh.
-
-Output: files added/changed, slots used, RPC list, build command, APK path, unverified items.</pre>
   </div>
 </div>
 <section id="overview" class="hero">
