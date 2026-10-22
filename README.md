@@ -572,6 +572,25 @@ if (host.requestCapability(PluginCapabilities.OPEN_URL)) {
 }
 ```
 
+### 设置页面板：DshPanel
+
+设置页/详情页不要直接用 Material `Card`，用 SDK 的 `design/DshPanel.kt`，与 App 内置
+设置页共用同一套底色、0.5dp 发丝边、16dp 圆角、44dp 行高和 11sp 分组标题：
+
+```kotlin
+DshPanel(theme = theme, title = "账号") {
+    DshSectionLabel("订阅", theme)
+    DshPanelRow(theme, title = "自动续费", value = "已开启", showDivider = true)
+    DshPanelRow(theme, title = "管理订阅", onClick = { /* openUrl */ })
+    DshPanelAction("查看全部", theme) { /* ... */ }
+}
+```
+
+颜色全部来自 `PluginTheme`（`colorPanel` / `colorPanelBorder` / `colorLabelPrimary` /
+`colorLabelSecondary` / `colorLabelTertiary` / `colorLink`），宿主按当前明暗主题下发；
+插件不写死色值，也不写深浅色分支。完整的组件清单、间距、按钮层级与验收项见
+[`docs/ui-guideline.md`](docs/ui-guideline.md)。
+
 `PluginStorage` 只能存展示偏好（如“上次选中的 tab”），**不能存 token/secret**。
 
 ---
@@ -847,6 +866,7 @@ gh release create sdk-v1.0.0 \
 | [`demo/README.md`](demo/README.md) | Demo 插件的身份、契约、构建与验证 |
 | [`demo/js/README.md`](demo/js/README.md) | Demo 的 JS 半边：RPC、动作、Web 回退 |
 | [`docs/plugin-sdk-guide.md`](docs/plugin-sdk-guide.md) | 原生插件完整开发规范 |
+| [`docs/ui-guideline.md`](docs/ui-guideline.md) | 原生 UI 设计规范：DshPanel / DshButton / 间距 / 验收 |
 | [`docs/native-plugin-sdk.md`](docs/native-plugin-sdk.md) | 插件侧 SDK 契约 |
 | [`docs/native-plugin-host.md`](docs/native-plugin-host.md) | App 侧宿主容器与注册表 |
 | [`docs/plugin-conversion-guide.md`](docs/plugin-conversion-guide.md) | Web UI 迁移到原生 UI |

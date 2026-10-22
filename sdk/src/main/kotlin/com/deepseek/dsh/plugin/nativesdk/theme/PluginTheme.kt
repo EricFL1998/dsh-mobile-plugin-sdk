@@ -41,6 +41,31 @@ data class PluginTheme(
     val cornerChip: Dp = 8.dp,
     val spacingUnit: Dp = 8.dp,
     val isDark: Boolean,
+    // 设置页/面板（与 App 的 DshPanel 同一套 token：隔层底色、发丝边、
+    // 三级文字色、44dp 行高）。插件设置页用 design/DshPanel.kt 里的组件，
+    // 这里的分组标题/分隔线/动作色随 App 主题变化。
+    val colorPanel: Color = colorSurface,
+    val colorPanelBorder: Color = colorOutline.copy(alpha = 0.25f),
+    val colorPanelElevated: Color = colorSurfaceVariant,
+    val colorLabelPrimary: Color = colorOnSurface,
+    val colorLabelSecondary: Color = colorOnSurfaceVariant,
+    val colorLabelTertiary: Color = colorOutline,
+    val colorLink: Color = colorPrimary,
+    val panelCorner: Dp = cornerCard,
+    val rowMinHeight: Dp = 44.dp,
+    // 控件（与 App DshDialogButton / DshSwitch / 输入框同一套 token）
+    val colorButtonPrimary: Color = colorPrimary,
+    val colorButtonPrimaryHover: Color = colorPrimary,
+    val colorButtonTextOnPrimary: Color = colorOnPrimary,
+    val colorButtonSecondaryBorder: Color = colorOutline.copy(alpha = 0.25f),
+    val colorButtonSecondaryText: Color = colorOnSurface,
+    val colorButtonDanger: Color = colorError,
+    val colorSwitchTrackOff: Color = colorOutline.copy(alpha = 0.3f),
+    val colorSwitchThumb: Color = colorOnPrimary,
+    val colorInputBackground: Color = colorSurfaceVariant,
+    val colorInputBorder: Color = colorOutline.copy(alpha = 0.25f),
+    val colorChipBackground: Color = colorSurfaceVariant,
+    val colorChipText: Color = colorOnSurfaceVariant,
 ) {
     /** 卡片圆角形状，直接用。 */
     val shapeCard get() = RoundedCornerShape(cornerCard)

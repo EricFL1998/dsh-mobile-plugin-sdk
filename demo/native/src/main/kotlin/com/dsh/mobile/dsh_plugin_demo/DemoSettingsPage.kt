@@ -8,12 +8,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -24,6 +21,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.deepseek.dsh.plugin.nativesdk.design.DshButton
+import com.deepseek.dsh.plugin.nativesdk.design.DshButtonVariant
+import com.deepseek.dsh.plugin.nativesdk.design.DshChip
+import com.deepseek.dsh.plugin.nativesdk.design.DshPanel
+import com.deepseek.dsh.plugin.nativesdk.design.DshPanelDivider
+import com.deepseek.dsh.plugin.nativesdk.design.DshPanelRow
+import com.deepseek.dsh.plugin.nativesdk.design.DshSectionLabel
+import com.deepseek.dsh.plugin.nativesdk.design.DshSwitchRow
 import com.deepseek.dsh.plugin.nativesdk.host.PluginHostApi
 import com.deepseek.dsh.plugin.nativesdk.host.PluginRpcHost
 import com.deepseek.dsh.plugin.nativesdk.pages.PageContent
@@ -90,6 +95,7 @@ private fun DemoSettingsContent(
     var error by remember { mutableStateOf<String?>(null) }
     var busy by remember { mutableStateOf(false) }
     var refreshKey by remember { mutableStateOf(0) }
+    var panelSwitch by remember { mutableStateOf(true) }
 
     /** 重新拉一次权威状态；所有动作结束后都回到这里。 */
     fun refresh() {
@@ -181,6 +187,39 @@ private fun DemoSettingsContent(
             color = theme.colorOnSurfaceVariant,
         )
 
+        // ── DshPanel：与 App 设置页同一套面板材质 ──────────────────────────
+        DshPanel(theme = theme, title = "面板样式（DshPanel）") {
+            DshSectionLabel("账号", theme)
+            DshPanelRow(
+                theme = theme,
+                title = "当前账号",
+                value = "demo@example.com",
+                showDivider = true,
+            )
+            DshPanelRow(
+                theme = theme,
+                title = "已启用模型",
+                subtitle = "2 个",
+                value = "编辑",
+                onClick = {},
+            )
+            DshPanelDivider(theme)
+            DshPanelRow(
+                theme = theme,
+                title = "说明",
+                subtitle = "底色、圆角、行高和文字层级都来自 PluginTheme，插件不写死色值。",
+            )
+            DshSwitchRow(
+                theme = theme,
+                title = "自动同步",
+                subtitle = "开关尺寸与 App 设置页一致",
+                checked = panelSwitch,
+                onCheckedChange = { panelSwitch = it },
+                showDivider = true,
+            )
+            DshChip("SDK · DshPanel", theme)
+        }
+
         // ── Host 状态（demo.status） ─────────────────────────────────────────
         Card(
             modifier = Modifier.fillMaxWidth(),
@@ -230,34 +269,29 @@ private fun DemoSettingsContent(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(theme.spacingUnit),
                 ) {
-                    Button(
+                    DshButton(
+                        text = "刷新",
+                        theme = theme,
                         onClick = { refresh() },
                         enabled = rpc != null && !busy,
                         modifier = Modifier.weight(1f),
-                        shape = theme.shapeChip,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = theme.colorPrimary,
-                            contentColor = theme.colorOnPrimary,
-                        ),
-                    ) {
-                        Text("刷新", style = theme.textCaption)
-                    }
-                    OutlinedButton(
+                    )
+                    DshButton(
+                        text = "服务端 +1",
+                        theme = theme,
                         onClick = { dispatchBump() },
                         enabled = rpc != null,
+                        variant = DshButtonVariant.SECONDARY,
                         modifier = Modifier.weight(1f),
-                        shape = theme.shapeChip,
-                    ) {
-                        Text("服务端 +1", style = theme.textCaption)
-                    }
-                    OutlinedButton(
+                    )
+                    DshButton(
+                        text = "重置",
+                        theme = theme,
                         onClick = { callRpcAndApply(DemoRpc.RESET) },
                         enabled = rpc != null && !busy,
+                        variant = DshButtonVariant.SECONDARY,
                         modifier = Modifier.weight(1f),
-                        shape = theme.shapeChip,
-                    ) {
-                        Text("重置", style = theme.textCaption)
-                    }
+                    )
                 }
                 Text(
                     "「服务端 +1」→ dispatchEvent → Host 动作 → client/refresh → 重读 demo.status；" +

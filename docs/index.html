@@ -269,6 +269,7 @@
       <a href="#mapping">实现</a>
       <a href="#case">案例</a>
       <a href="#validation">校验</a>
+<a href="#ui">UI 规范</a>
       <a href="https://github.com/EricFL1998/deepseek-harness-mobile" target="_blank" rel="noopener">GitHub ↗</a>
     </nav>
     <button class="icon-btn" id="themeBtn" title="切换主题" aria-label="切换主题">◐</button>
@@ -291,6 +292,7 @@
     <a href="#case">案例：Demo 插件接入</a>
     <a href="#validation">校验与 CI</a>
     <a href="#pitfalls">上线检查</a>
+    <a href="#ui">UI 设计规范</a>
     <a href="#troubleshooting">操作要点</a>
     <a href="#files">SDK 文件结构</a>
     <a href="#glossary">术语与版本</a>
@@ -708,9 +710,49 @@ settings.section                DemoSettingsSection  impl=True
       </div>
     </section>
 
+    <section id="ui">
+      <div class="section-head">
+        <h2><span class="num">12</span>UI 设计规范<a class="anchor" href="#ui">#</a></h2>
+        <p>设置页、详情页与 popover 统一使用 SDK 的 DshPanel / DshButton 等组件，
+        与 App 内置页面同一套底色、圆角、行高与字号。</p>
+      </div>
+      <div class="grid cols-2">
+        <div class="card"><div class="kicker">页面骨架</div><h3>16dp / 8dp / 11sp</h3>
+        <p>页面左右 16dp；面板间距 8dp；分组标题 11sp 三级文字色；面板 16dp 圆角、
+        0.5dp 发丝边、16dp 内边距。</p></div>
+        <div class="card"><div class="kicker">面板</div><h3>DshPanel + DshPanelRow</h3>
+        <p>一个面板只放一类设置；行高 44dp；可点击行才加点击态；说明放
+        <code>subtitle</code> 或 <code>DshPanelCaption</code>。</p></div>
+        <div class="card"><div class="kicker">按钮</div><h3>DshButton 四档</h3>
+        <p>PRIMARY 每屏唯一；SECONDARY 取消/并列；GHOST 行内文字动作；DANGER 删除、
+        退出、取消授权，并配二次确认。</p></div>
+        <div class="card"><div class="kicker">控件</div><h3>开关 / 输入 / 对话框</h3>
+        <p><code>DshSwitchRow</code>、<code>DshTextField</code>、<code>DshDialog</code>
+        已封装尺寸与主题；禁用态统一 40% 透明度，不自己改色。</p></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>组件</th><th>用途</th><th>约束</th></tr></thead>
+          <tbody>
+            <tr><td><code>DshPanel</code> / <code>DshPanelRow</code></td><td>设置分组与行</td><td>16dp 圆角、44dp 行高</td></tr>
+            <tr><td><code>DshButton</code></td><td>保存 / 取消 / 危险动作</td><td>同屏只一个 PRIMARY；高度 40dp</td></tr>
+            <tr><td><code>DshSwitchRow</code></td><td>开关设置</td><td>36×20 轨道、16dp 滑块</td></tr>
+            <tr><td><code>DshTextField</code></td><td>文本输入</td><td>12dp 圆角、必须给 placeholder</td></tr>
+            <tr><td><code>DshChip</code></td><td>状态/分类标签</td><td>不可点击</td></tr>
+            <tr><td><code>DshDialog</code></td><td>确认 / 危险操作</td><td>最多两个按钮，危险确认用 DANGER</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout">
+        <strong>完整规范</strong>
+        <p>颜色 Token 表、禁止项与验收清单见
+        <a href="https://github.com/EricFL1998/dsh-mobile-plugin-sdk/blob/main/docs/ui-guideline.md" target="_blank" rel="noopener">docs/ui-guideline.md</a>。</p>
+      </div>
+    </section>
+
     <section id="troubleshooting">
       <div class="section-head">
-        <h2><span class="num">12</span>操作要点<a class="anchor" href="#troubleshooting">#</a></h2>
+        <h2><span class="num">13</span>操作要点<a class="anchor" href="#troubleshooting">#</a></h2>
         <p>按以下顺序完成扫描、认领与验证。</p>
       </div>
       <details open>
@@ -746,7 +788,7 @@ settings.section                DemoSettingsSection  impl=True
 
     <section id="files">
       <div class="section-head">
-        <h2><span class="num">13</span>SDK 文件结构<a class="anchor" href="#files">#</a></h2>
+        <h2><span class="num">14</span>SDK 文件结构<a class="anchor" href="#files">#</a></h2>
         <p>交付包与仓库中的关键文件。</p>
       </div>
       <div class="tree"><b>dsh-mobile-plugin-sdk/</b>
@@ -759,6 +801,7 @@ settings.section                DemoSettingsSection  impl=True
 │  ├─ source-driven-native-ui.md  <span class="mini">本流程的文字版</span>
 │  ├─ plugin-ui-inventory-example.md <span class="mini">Demo 插件的扫描输出</span>
 │  ├─ plugin-sdk-guide.md         <span class="mini">SDK 开发者文档</span>
+│  ├─ ui-guideline.md             <span class="mini">原生 UI 设计规范（DshPanel / DshButton）</span>
 │  ├─ publishing.md               <span class="mini">发布与打 tag</span>
 │  └─ slot-inventory.md
 ├─ demo/
@@ -778,7 +821,7 @@ settings.section                DemoSettingsSection  impl=True
 
     <section id="glossary">
       <div class="section-head">
-        <h2><span class="num">14</span>术语与版本<a class="anchor" href="#glossary">#</a></h2>
+        <h2><span class="num">15</span>术语与版本<a class="anchor" href="#glossary">#</a></h2>
         <p>快速查表。</p>
       </div>
       <div class="table-wrap">
