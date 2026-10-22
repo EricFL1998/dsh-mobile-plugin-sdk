@@ -1,0 +1,36 @@
+name: Refresh plugin store index
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: store-index
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build index
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p docs/store
+          node tools/build_store_index.mjs > docs/store/index.json
+      - name: Commit index
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/store/index.json
+          if git diff --cached --quiet; then
+            echo "index unchanged"
+            exit 0
+          fi
+          git commit -m "chore: refresh plugin store index"
+          git push
