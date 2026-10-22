@@ -264,13 +264,12 @@
       <span>DSH Native UI<small>源码驱动接入流程</small></span>
     </div>
     <nav class="topnav">
+      <a href="#overview">概览</a>
       <a href="#scan">扫描</a>
-      <a href="#report">报告</a>
-      <a href="#mapping">实现</a>
+      <a href="#implement">实现</a>
       <a href="#case">案例</a>
-      <a href="#validation">校验</a>
-<a href="#publish">发布</a>
-<a href="#ui">UI 规范</a>
+      <a href="#publish">发布</a>
+      <a href="#ui">UI 规范</a>
       <a href="https://github.com/EricFL1998/deepseek-harness-mobile" target="_blank" rel="noopener">GitHub ↗</a>
     </nav>
     <button class="icon-btn" id="themeBtn" title="切换主题" aria-label="切换主题">◐</button>
@@ -282,26 +281,18 @@
   <aside class="toc" id="toc">
     <div class="toc-title">目录</div>
     <a href="#overview">概览</a>
-    <a href="#principles">接入原则</a>
-    <a href="#architecture">整体架构</a>
-    <a href="#inputs">输入与准备</a>
-    <a href="#scan">扫描插件源码</a>
-    <a href="#report">读懂扫描报告</a>
-    <a href="#mapping">选择实现方式</a>
-    <a href="#capabilities">宿主能力与数据契约</a>
-    <a href="#slots">内置控件也走 slot</a>
-    <a href="#case">案例：Demo 插件接入</a>
-    <a href="#validation">校验与 CI</a>
-    <a href="#pitfalls">上线检查</a>
+    <a href="#principles">接入原则、架构与输入准备</a>
+    <a href="#scan">扫描与报告</a>
+    <a href="#implement">实现方式、能力与 slot</a>
+    <a href="#case">Demo 插件接入案例</a>
+    <a href="#validation">校验、上线检查与操作要点</a>
     <a href="#publish">发布与商店发现</a>
     <a href="#ui">UI 设计规范</a>
-    <a href="#troubleshooting">操作要点</a>
-    <a href="#files">SDK 文件结构</a>
-    <a href="#glossary">术语与版本</a>
+    <a href="#files">文件结构与版本</a>
   </aside>
 
   <main>
-    <section id="overview" class="hero">
+<section id="overview" class="hero">
       <div class="eyebrow">DSH Mobile · Native UI SDK</div>
       <h1>从插件源码出发，<br>把原生 UI 一次接全</h1>
       <p class="lede">
@@ -318,10 +309,11 @@
 
     <section id="principles">
       <div class="section-head">
-        <h2><span class="num">01</span>接入原则<a class="anchor" href="#principles">#</a></h2>
-        <p>先得到完整清单，再逐项实现；每一步都有可复跑的校验。</p>
+        <h2><span class="num">01</span>接入原则、架构与输入准备<a class="anchor" href="#principles">#</a></h2>
+        <p>三条硬规则、Host/App/伴生 APK 的职责边界，以及开始前要准备的输入。</p>
       </div>
-      <div class="grid cols-3">
+      <h3>接入原则<a class="anchor" href="#principles">#</a></h3>
+<p>先得到完整清单，再逐项实现；每一步都有可复跑的校验。</p><div class="grid cols-3">
         <div class="card">
           <div class="kicker">1 · 先清单</div>
           <h3>扫描源码，得到挂载点</h3>
@@ -344,14 +336,10 @@
         <strong>最佳实践</strong>
         <p>先覆盖、后像素：清单驱动实现，截图只用于视觉验收。</p>
       </div>
-    </section>
 
-    <section id="architecture">
-      <div class="section-head">
-        <h2><span class="num">02</span>整体架构<a class="anchor" href="#architecture">#</a></h2>
-        <p>按五步执行：插件源码 → 扫描 → UI 清单 → 原生实现 → 校验。</p>
-      </div>
-      <div class="flow">
+      <div class="hr"></div>
+<a id="architecture"></a><h3>整体架构<a class="anchor" href="#architecture">#</a></h3>
+<p>按五步执行：插件源码 → 扫描 → UI 清单 → 原生实现 → 校验。</p><div class="flow">
         <div class="step"><div class="idx">1</div><b>插件源码</b><span>source map / TSX / client.js</span></div>
         <div class="step"><div class="idx">2</div><b>Plugin Scanner</b><span>slot · entry · component · RPC</span></div>
         <div class="step"><div class="idx">3</div><b>UI Manifest</b><span>JSON + Markdown 缺口清单</span></div>
@@ -371,14 +359,10 @@
           <code>PluginRpcHost</code>、<code>PluginModelHost</code> 提供受控能力。</p>
         </div>
       </div>
-    </section>
 
-    <section id="inputs">
-      <div class="section-head">
-        <h2><span class="num">03</span>输入与准备<a class="anchor" href="#inputs">#</a></h2>
-        <p>准备自己已经发布的插件包或源码仓库即可；扫描器直接读取这份输入。</p>
-      </div>
-      <div class="table-wrap">
+      <div class="hr"></div>
+<a id="inputs"></a><h3>输入与准备<a class="anchor" href="#inputs">#</a></h3>
+<p>准备自己已经发布的插件包或源码仓库即可；扫描器直接读取这份输入。</p><div class="table-wrap">
         <table>
           <thead><tr><th>输入</th><th>优先级</th><th>说明</th></tr></thead>
           <tbody>
@@ -417,10 +401,11 @@
 
     <section id="scan">
       <div class="section-head">
-        <h2><span class="num">04</span>扫描插件源码<a class="anchor" href="#scan">#</a></h2>
-        <p>一次扫描，得到插件全部 UI 挂载点与它们需要的数据。</p>
+        <h2><span class="num">02</span>扫描与报告<a class="anchor" href="#scan">#</a></h2>
+        <p>用 SDK 扫描器读出插件 UI 清单、RPC 与缺口，并读懂报告。</p>
       </div>
-      <div class="tree"><b>你的插件包/</b>
+      <h3>扫描插件源码<a class="anchor" href="#scan">#</a></h3>
+<p>一次扫描，得到插件全部 UI 挂载点与它们需要的数据。</p><div class="tree"><b>你的插件包/</b>
 ├─ package.json          <span class="mini">name / version / 依赖</span>
 ├─ lib/
 │  ├─ client.js          <span class="mini">编译产物（兜底）</span>
@@ -457,14 +442,10 @@
       两个落点都已映射、宿主就绪、伴生实现，<code>--check</code> 通过。报告里的「RPC 端点」
       是 Web 组件实际调用的数据依赖（<code>demo.status</code> / <code>demo.bump</code>），
       Host 侧完整契约还有另外 4 个端点。</p>
-    </section>
 
-    <section id="report">
-      <div class="section-head">
-        <h2><span class="num">05</span>读懂扫描报告<a class="anchor" href="#report">#</a></h2>
-        <p>报告按列对应实现任务：每一行就是一条待办。</p>
-      </div>
-      <div class="table-wrap">
+      <div class="hr"></div>
+<a id="report"></a><h3>读懂扫描报告<a class="anchor" href="#report">#</a></h3>
+<p>报告按列对应实现任务：每一行就是一条待办。</p><div class="table-wrap">
         <table>
           <thead><tr><th>列</th><th>含义</th><th>怎么用</th></tr></thead>
           <tbody>
@@ -493,12 +474,13 @@
       作为整岛 Web 回退容器在清单里单独标注。</p>
     </section>
 
-    <section id="mapping">
+    <section id="implement">
       <div class="section-head">
-        <h2><span class="num">06</span>选择实现方式<a class="anchor" href="#mapping">#</a></h2>
-        <p>按形态选容器、按数据选能力；每个位置选最轻、最贴合的实现。</p>
+        <h2><span class="num">03</span>实现方式、能力与 slot<a class="anchor" href="#implement">#</a></h2>
+        <p>在 PageContent / SlotContribution / OfficialSlot 之间选型，并接上 RPC 与宿主能力。</p>
       </div>
-      <div class="table-wrap">
+      <a id="mapping"></a><h3>选择实现方式<a class="anchor" href="#mapping">#</a></h3>
+<p>按形态选容器、按数据选能力；每个位置选最轻、最贴合的实现。</p><div class="table-wrap">
         <table>
           <thead><tr><th>扫描结果</th><th>原生实现</th><th>典型例子</th></tr></thead>
           <tbody>
@@ -516,14 +498,10 @@
         <p>伴侣需要“切模型”或“写文件”等 App 能力时，新增可选 SDK 接口（参考
         <code>PluginRpcHost</code> / <code>PluginModelHost</code>），由宿主统一注入。</p>
       </div>
-    </section>
 
-    <section id="capabilities">
-      <div class="section-head">
-        <h2><span class="num">07</span>宿主能力与数据契约<a class="anchor" href="#capabilities">#</a></h2>
-        <p>原生端只经 RPC 从 Host 取展示数据；网络与凭证留在 Host，能力由 App 注入。</p>
-      </div>
-      <div class="grid cols-2">
+      <div class="hr"></div>
+<a id="capabilities"></a><h3>宿主能力与数据契约<a class="anchor" href="#capabilities">#</a></h3>
+<p>原生端只经 RPC 从 Host 取展示数据；网络与凭证留在 Host，能力由 App 注入。</p><div class="grid cols-2">
         <div class="card">
           <div class="kicker">PluginRpcHost</div>
           <h3>调用插件既有 RPC</h3>
@@ -558,14 +536,10 @@
         <strong>凭证边界</strong>
         <p>token / API key / 任意文件路径只出现在 Host；原生只拿展示数据。</p>
       </div>
-    </section>
 
-    <section id="slots">
-      <div class="section-head">
-        <h2><span class="num">08</span>内置控件也走 slot<a class="anchor" href="#slots">#</a></h2>
-        <p>内置 compositor dock 由可插拔条目组成：tok/s、缓存命中、上下文各自独立注册。</p>
-      </div>
-      <div class="table-wrap">
+      <div class="hr"></div>
+<a id="slots"></a><h3>内置控件也走 slot<a class="anchor" href="#slots">#</a></h3>
+<p>内置 compositor dock 由可插拔条目组成：tok/s、缓存命中、上下文各自独立注册。</p><div class="table-wrap">
         <table>
           <thead><tr><th>内置 slot</th><th>原生落点</th><th>宿主</th><th>内置默认</th></tr></thead>
           <tbody>
@@ -612,8 +586,8 @@ OfficialSlot(
 
     <section id="case">
       <div class="section-head">
-        <h2><span class="num">09</span>案例：Demo 插件接入<a class="anchor" href="#case">#</a></h2>
-        <p>从 JS 注册、原生接管到 RPC / 事件闭环，完整走一遍。</p>
+        <h2><span class="num">04</span>Demo 插件接入案例<a class="anchor" href="#case">#</a></h2>
+        <p>Demo 的 JS + 原生两半如何配对、读状态、回传动作与降级。</p>
       </div>
       <div class="grid cols-2">
         <div class="card">
@@ -660,10 +634,11 @@ settings.section                DemoSettingsSection  impl=True
 
     <section id="validation">
       <div class="section-head">
-        <h2><span class="num">10</span>校验与 CI<a class="anchor" href="#validation">#</a></h2>
-        <p>三道闸：插件覆盖、内置 slot 覆盖、App 单测。</p>
+        <h2><span class="num">05</span>校验、上线检查与操作要点<a class="anchor" href="#validation">#</a></h2>
+        <p>从 --check 到真机验收的完整闭环，以及常见问题的处理顺序。</p>
       </div>
-      <div class="grid cols-3">
+      <h3>校验与 CI<a class="anchor" href="#validation">#</a></h3>
+<p>三道闸：插件覆盖、内置 slot 覆盖、App 单测。</p><div class="grid cols-3">
         <div class="card"><div class="kicker">Gate 1</div><h3>plugin scanner --check</h3>
         <p>插件每个 slot 都有映射、有宿主、有伴侣实现，即通过。</p></div>
         <div class="card"><div class="kicker">Gate 2</div><h3>slot_inventory.py</h3>
@@ -683,14 +658,10 @@ settings.section                DemoSettingsSection  impl=True
         <p>新增内置 slot 时，先补映射、宿主与测试，再更新清单；每次改动保持
         <code>--check</code> 通过。</p>
       </div>
-    </section>
 
-    <section id="pitfalls">
-      <div class="section-head">
-        <h2><span class="num">11</span>上线检查<a class="anchor" href="#pitfalls">#</a></h2>
-        <p>按模块逐项确认：每一项都给出正确做法与验收标准。</p>
-      </div>
-      <div class="grid cols-2">
+      <div class="hr"></div>
+<a id="pitfalls"></a><h3>上线检查<a class="anchor" href="#pitfalls">#</a></h3>
+<p>按模块逐项确认：每一项都给出正确做法与验收标准。</p><div class="grid cols-2">
         <div class="card"><div class="kicker">Slot</div><h3>先补齐能力桥</h3>
         <p>slot 贡献默认只有基础 <code>PluginHostApi</code>；需要 RPC/模型能力时，
         用 <code>SlotBridgeHost</code> 包装后再读取。</p></div>
@@ -710,13 +681,44 @@ settings.section                DemoSettingsSection  impl=True
         <p>各模块的最佳做法、检查项与验收标准见
         <a href="https://github.com/EricFL1998/dsh-mobile-plugin-sdk/blob/main/docs/pitfalls.md" target="_blank" rel="noopener">docs/pitfalls.md</a>。</p>
       </div>
+
+      <div class="hr"></div>
+<a id="troubleshooting"></a><h3>操作要点<a class="anchor" href="#troubleshooting">#</a></h3>
+<p>按以下顺序完成扫描、认领与验证。</p><details open>
+        <summary>确认扫描输入</summary>
+        <p>插件包里准备 <code>lib/client.js.map</code> 或 <code>src/*.tsx</code>；只有编译产物时用
+        <code>lib/client.js</code> 兜底。<code>--plugin</code> 指向包根目录。</p>
+      </details>
+      <details>
+        <summary>认领未映射 slot</summary>
+        <p>在 App 侧补 <code>DshSlotRegistry</code> 常量、<code>NativeSlot</code>、
+        <code>NativeSlotMapping</code> 与宿主，然后运行 <code>slot_inventory.py</code>。</p>
+      </details>
+      <details>
+        <summary>补宿主容器</summary>
+        <p>在对应页面/控件位置加入 <code>NativeSlot</code> / <code>OfficialSlot</code> 调用。</p>
+      </details>
+      <details>
+        <summary>补伴侣实现</summary>
+        <p>在伴侣注册对应的 <code>SlotContribution</code> / <code>PageContent</code>，
+        NativeSlot 与 JS 注册保持一致，然后重新扫描。</p>
+      </details>
+      <details>
+        <summary>接通交互能力</summary>
+        <p>需要 RPC 时确认 <code>PluginRpcHost</code> 由 <code>SlotBridgeHost</code> 注入，
+        App 已设置 <code>NativeHost.rpcHandler</code>。</p>
+      </details>
+      <details>
+        <summary>确认覆盖完整</summary>
+        <p>以 <code>--check</code>、<code>slot_inventory.py</code>、<code>SlotCoverageTest</code>
+        为准；截图只做视觉验收。</p>
+      </details>
     </section>
 
     <section id="publish">
       <div class="section-head">
-        <h2><span class="num">12</span>发布与商店发现<a class="anchor" href="#publish">#</a></h2>
-        <p>插件要出现在「插件商店」，必须同时做三件事：给 GitHub 仓库加 topic、打 Release tag、
-        在 Release 里上传 <code>.apk</code> 资产。缺任何一项，商店都不会发现。</p>
+        <h2><span class="num">06</span>发布与商店发现<a class="anchor" href="#publish">#</a></h2>
+        <p>JS/APK 发布、tag/topic 与商店索引生效规则。</p>
       </div>
       <div class="grid cols-2">
         <div class="card"><div class="kicker">1 · 仓库 topic</div><h3>dsh-mobile-plugin</h3>
@@ -757,9 +759,8 @@ gh release create v0.17.18 dsh-plugin-&lt;name&gt;-companion-0.17.18.apk \
 
     <section id="ui">
       <div class="section-head">
-        <h2><span class="num">13</span>UI 设计规范<a class="anchor" href="#ui">#</a></h2>
-        <p>设置页、详情页与 popover 统一使用 SDK 的 DshPanel / DshButton 等组件，
-        与 App 内置页面同一套底色、圆角、行高与字号。</p>
+        <h2><span class="num">07</span>UI 设计规范<a class="anchor" href="#ui">#</a></h2>
+        <p>DshPanel / DshButton 等组件的尺寸、层级与验收。</p>
       </div>
       <div class="grid cols-2">
         <div class="card"><div class="kicker">页面骨架</div><h3>16dp / 8dp / 11sp</h3>
@@ -795,48 +796,13 @@ gh release create v0.17.18 dsh-plugin-&lt;name&gt;-companion-0.17.18.apk \
       </div>
     </section>
 
-    <section id="troubleshooting">
-      <div class="section-head">
-        <h2><span class="num">14</span>操作要点<a class="anchor" href="#troubleshooting">#</a></h2>
-        <p>按以下顺序完成扫描、认领与验证。</p>
-      </div>
-      <details open>
-        <summary>确认扫描输入</summary>
-        <p>插件包里准备 <code>lib/client.js.map</code> 或 <code>src/*.tsx</code>；只有编译产物时用
-        <code>lib/client.js</code> 兜底。<code>--plugin</code> 指向包根目录。</p>
-      </details>
-      <details>
-        <summary>认领未映射 slot</summary>
-        <p>在 App 侧补 <code>DshSlotRegistry</code> 常量、<code>NativeSlot</code>、
-        <code>NativeSlotMapping</code> 与宿主，然后运行 <code>slot_inventory.py</code>。</p>
-      </details>
-      <details>
-        <summary>补宿主容器</summary>
-        <p>在对应页面/控件位置加入 <code>NativeSlot</code> / <code>OfficialSlot</code> 调用。</p>
-      </details>
-      <details>
-        <summary>补伴侣实现</summary>
-        <p>在伴侣注册对应的 <code>SlotContribution</code> / <code>PageContent</code>，
-        NativeSlot 与 JS 注册保持一致，然后重新扫描。</p>
-      </details>
-      <details>
-        <summary>接通交互能力</summary>
-        <p>需要 RPC 时确认 <code>PluginRpcHost</code> 由 <code>SlotBridgeHost</code> 注入，
-        App 已设置 <code>NativeHost.rpcHandler</code>。</p>
-      </details>
-      <details>
-        <summary>确认覆盖完整</summary>
-        <p>以 <code>--check</code>、<code>slot_inventory.py</code>、<code>SlotCoverageTest</code>
-        为准；截图只做视觉验收。</p>
-      </details>
-    </section>
-
     <section id="files">
       <div class="section-head">
-        <h2><span class="num">15</span>SDK 文件结构<a class="anchor" href="#files">#</a></h2>
-        <p>交付包与仓库中的关键文件。</p>
+        <h2><span class="num">08</span>文件结构与版本<a class="anchor" href="#files">#</a></h2>
+        <p>SDK 仓库目录、版本矩阵与术语。</p>
       </div>
-      <div class="tree"><b>dsh-mobile-plugin-sdk/</b>
+      <h3>SDK 文件结构<a class="anchor" href="#files">#</a></h3>
+<p>交付包与仓库中的关键文件。</p><div class="tree"><b>dsh-mobile-plugin-sdk/</b>
 ├─ README.md
 ├─ slot-mapping.md                <span class="mini">31 个内置 slot → 原生落点 → 宿主</span>
 ├─ tools/
@@ -862,14 +828,10 @@ gh release create v0.17.18 dsh-plugin-&lt;name&gt;-companion-0.17.18.apk \
         后由 <code>.github/workflows/pages.yml</code> 自动构建并发布 <code>docs/</code>；
         仓库 Settings → Pages 选择 <code>GitHub Actions</code> 作为来源即可。</p>
       </div>
-    </section>
 
-    <section id="glossary">
-      <div class="section-head">
-        <h2><span class="num">16</span>术语与版本<a class="anchor" href="#glossary">#</a></h2>
-        <p>快速查表。</p>
-      </div>
-      <div class="table-wrap">
+      <div class="hr"></div>
+<a id="glossary"></a><h3>术语与版本<a class="anchor" href="#glossary">#</a></h3>
+<p>快速查表。</p><div class="table-wrap">
         <table>
           <thead><tr><th>术语</th><th>解释</th></tr></thead>
           <tbody>
@@ -892,7 +854,7 @@ gh release create v0.17.18 dsh-plugin-&lt;name&gt;-companion-0.17.18.apk \
         <p>扫描器、App slot 宿主、Demo 示例与本文档位于同一仓库；SDK 交付包可独立分发。</p></div>
       </div>
     </section>
-  </main>
+    </main>
 </div>
 
 <footer>
