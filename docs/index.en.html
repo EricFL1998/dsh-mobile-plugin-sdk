@@ -233,7 +233,14 @@
   }
   .agent-prompt-head { font-weight: 700; font-size: 15px; margin-bottom: 2px; }
   .agent-prompt-head .mini { display: block; font-weight: 400; margin-top: 3px; }
-  .agent-prompt pre { max-height: 340px; }
+  /* 这份 prompt 直接完整展示：不要内部滚动条，长行自动换行。 */
+  .agent-prompt pre {
+    max-height: none;
+    overflow: visible;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
   .prompt-lang { font-size: 12px; font-weight: 700; color: var(--accent); margin: 12px 0 4px; }
   .hr { height: 1px; background: var(--line); margin: 26px 0; }
   @media (max-width: 1080px) {
