@@ -567,6 +567,23 @@ Text(
 )
 ```
 
+### 深色主题
+
+宿主在线时，`host.currentTheme()` 随 App/Host 的 `ui-theme` 实时切换明暗，快照里的
+`isDark`、`colorSurface`、`colorLabel*`、`colorPanel*` 都会变成深色取值；插件不要自己写
+`isSystemInDarkTheme()` 分支，按 `theme.isDark` 判断即可。
+
+SDK 还提供两套官方预置，供预览、单元测试或独立渲染使用：
+
+```kotlin
+val theme = if (dark) PluginTheme.dark() else PluginTheme.light()
+PreviewPanel(theme)   // 与宿主下发的是同一套 token
+```
+
+`PluginTheme.dark()` 与 App 的 DshDark 调色板同源（背景 `#151517`、三级文字色、发丝边、
+深色按钮/输入框），`PluginTheme.light()` 与 DshLight 同源。插件页/设置页在深色下的
+对比度应当用 `PluginTheme.dark()` 自查，不要只测浅色。
+
 宿主能力调用前用 `host.requestCapability(...)` 检查；未声明或用户关闭时降级：
 
 ```kotlin

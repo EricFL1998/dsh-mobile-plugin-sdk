@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 /**
  * 插件可见的主题只读快照。
@@ -75,4 +76,91 @@ data class PluginTheme(
 
     /** 浮层圆角形状（与 App 菜单一致）。 */
     val shapePopup get() = RoundedCornerShape(cornerPopup)
+
+    companion object {
+        /**
+         * 官方浅色主题预置：与 App 的 DshLight 调色板同源。
+         *
+         * 宿主在线时永远以宿主推来的 [PluginTheme] 为准；这个预置只用于预览、
+         * 单元测试和独立渲染插件页，避免插件自己写死一套浅色。
+         */
+        fun light(): PluginTheme = PluginTheme(
+            colorPrimary = Color(0xFF1D5DE7),
+            colorOnPrimary = Color.White,
+            colorSurface = Color(0xFFFFFFFF),
+            colorOnSurface = Color(0xFF191C20),
+            colorSurfaceVariant = Color(0xFFE0E2EC),
+            colorOnSurfaceVariant = Color(0xFF44474F),
+            colorError = Color(0xFFEC1313),
+            colorOnError = Color.White,
+            colorOutline = Color(0xFF74777F),
+            colorPopupSurface = Color(0xFFF8F9FA),
+            colorPopupBorder = Color(0x1F000000),
+            textTitle = TextStyle(fontSize = 20.sp, lineHeight = 26.sp),
+            textBody = TextStyle(fontSize = 14.sp, lineHeight = 20.sp),
+            textCaption = TextStyle(fontSize = 12.sp, lineHeight = 16.sp),
+            isDark = false,
+            colorPanel = Color.White,
+            colorPanelBorder = Color(0x1A000000),
+            colorPanelElevated = Color.White,
+            colorLabelPrimary = Color(0xFF0F1115),
+            colorLabelSecondary = Color(0xFF61666B),
+            colorLabelTertiary = Color(0xFF81858C),
+            colorLink = Color(0xFF1D5DE7),
+            colorButtonPrimary = Color(0xFF0F1115),
+            colorButtonPrimaryHover = Color(0xFF43454A),
+            colorButtonTextOnPrimary = Color.White,
+            colorButtonSecondaryBorder = Color(0x1F000000),
+            colorButtonSecondaryText = Color(0xFF0F1115),
+            colorButtonDanger = Color(0xFFEC1313),
+            colorSwitchTrackOff = Color(0x1F000000),
+            colorSwitchThumb = Color.White,
+            colorInputBackground = Color.White,
+            colorInputBorder = Color(0x1A000000),
+            colorChipBackground = Color(0xFFF5F6F7),
+            colorChipText = Color(0xFF61666B),
+        )
+
+        /**
+         * 官方深色主题预置：与 App 的 DshDark 调色板同源（背景 #151517、三级文字、
+         * 发丝边、深色按钮）。插件在深色宿主下读到的是这个取值；预览/测试直接用
+         * 它可以在深色下检查对比度，不必自己维护 `isDark` 分支。
+         */
+        fun dark(): PluginTheme = PluginTheme(
+            colorPrimary = Color(0xFFB4C5FF),
+            colorOnPrimary = Color(0xFF002A78),
+            colorSurface = Color(0xFF111318),
+            colorOnSurface = Color(0xFFE2E2E9),
+            colorSurfaceVariant = Color(0xFF353638),
+            colorOnSurfaceVariant = Color(0xFFC4C6D0),
+            colorError = Color(0xFFF25A5A),
+            colorOnError = Color(0xFF3A0A0A),
+            colorOutline = Color(0xFF8E9099),
+            colorPopupSurface = Color(0xFF2A2B2E),
+            colorPopupBorder = Color(0x29FFFFFF),
+            textTitle = TextStyle(fontSize = 20.sp, lineHeight = 26.sp),
+            textBody = TextStyle(fontSize = 14.sp, lineHeight = 20.sp),
+            textCaption = TextStyle(fontSize = 12.sp, lineHeight = 16.sp),
+            isDark = true,
+            colorPanel = Color(0xFF2C2C2E),
+            colorPanelBorder = Color(0x1FFFFFFF),
+            colorPanelElevated = Color(0xFF353638),
+            colorLabelPrimary = Color(0xFFF9FAFB),
+            colorLabelSecondary = Color(0xFFCFD3D6),
+            colorLabelTertiary = Color(0xFFADB2B8),
+            colorLink = Color(0xFFB4C5FF),
+            colorButtonPrimary = Color(0xFFF9FAFB),
+            colorButtonPrimaryHover = Color(0xFFEBEEF2),
+            colorButtonTextOnPrimary = Color(0xFF0F1115),
+            colorButtonSecondaryBorder = Color(0x29FFFFFF),
+            colorButtonSecondaryText = Color(0xFFF9FAFB),
+            colorButtonDanger = Color(0xFFF25A5A),
+            colorSwitchTrackOff = Color(0x29FFFFFF),
+            colorSwitchThumb = Color(0xFFADB2B8),
+            colorInputBackground = Color(0xFF353638),
+            colorInputBorder = Color(0x1FFFFFFF),
+            colorChipBackground = Color(0xFF353638),
+            colorChipText = Color(0xFFCFD3D6),
+        )
+    }
 }

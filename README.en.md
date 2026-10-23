@@ -575,6 +575,23 @@ throughout. Pure write operations can also go straight through RPC (the Demo's "
 
 ## 6. Theme and capabilities
 
+### Dark theme
+
+While the host is connected, `host.currentTheme()` follows the app/host `ui-theme` setting and
+the snapshot's `isDark`, `colorSurface`, `colorLabel*` and `colorPanel*` values switch to their
+dark variants. Plugins must not branch on `isSystemInDarkTheme()`; use `theme.isDark`.
+
+The SDK also ships the two official presets for previews, unit tests and standalone rendering:
+
+```kotlin
+val theme = if (dark) PluginTheme.dark() else PluginTheme.light()
+PreviewPanel(theme)   // same tokens the host hands to plugins
+```
+
+`PluginTheme.dark()` mirrors the app's DshDark palette (base `#151517`, three label tiers,
+hairlines, dark buttons/inputs); `PluginTheme.light()` mirrors DshLight. Check contrast in
+dark mode with `PluginTheme.dark()`, not only in light mode.
+
 All colors, font sizes and corner radii come from `PluginTheme`; nothing is hardcoded:
 
 ```kotlin
