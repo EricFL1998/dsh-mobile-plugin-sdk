@@ -1,3 +1,28 @@
+<p align="center">
+  <a href="https://ericfl1998.github.io/dsh-mobile-plugin-sdk/">
+    <img src="https://ericfl1998.github.io/dsh-mobile-plugin-sdk/assets/banner-sdk.svg" alt="DSH Native UI SDK — Kotlin + Compose companion UI for DSH plugins" width="900">
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://ericfl1998.github.io/dsh-mobile-plugin-sdk/"><strong>在线文档</strong></a>
+  &nbsp;·&nbsp;
+  <a href="https://ericfl1998.github.io/deepseek-harness-mobile/"><strong>DSH Mobile 产品页</strong></a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/EricFL1998/deepseek-harness-mobile/releases/latest"><strong>下载 App</strong></a>
+  &nbsp;·&nbsp;
+  <a href="demo/README.md"><strong>Demo 插件</strong></a>
+</p>
+
+## 30 秒接入
+
+1. 把 [`artifacts/dsh-native-ui-sdk-release.aar`](artifacts/dsh-native-ui-sdk-release.aar) 放进伴侣 APK 的 `libs/`；
+2. 在 `build.gradle.kts` 引入 AAR 与 Compose（见 [§2 依赖接入](#2-依赖接入)）；
+3. manifest 声明 `dsh.plugin.id` / `dsh.plugin.jsPackage` / `apiVersion` / `minAppVersion`；
+4. 继承 `SlotContribution` 或 `PageContent` 注册界面，数据通过 `PluginRpcHost` 调 JS RPC。
+
+逻辑仍留在 Host，原生只负责渲染与用户意图回传。
+
 # DSH Mobile Native UI SDK
 
 > 中文 | [English](README.en.md)
