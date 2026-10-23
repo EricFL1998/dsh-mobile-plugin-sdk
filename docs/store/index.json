@@ -1,21 +1,21 @@
 {
-  "generatedAt": "2026-10-23T06:20:35.312Z",
+  "generatedAt": "2026-10-23T06:21:22.119Z",
   "repos": [
     {
       "fullName": "EricFL1998/dsh-subscription-oauth",
       "description": "Use your Kimi Code / Grok (X Premium) / Google Antigravity / GLM (BigModel) subscriptions as DeepSeek Harness LLM providers - OAuth sign-in, per-model visibility, drag-to-reorder Auto fallback, and plan quotas from the Settings page. No API keys.",
       "stars": 0,
       "htmlUrl": "https://github.com/EricFL1998/dsh-subscription-oauth",
-      "pushedAt": 1792641039000,
+      "pushedAt": 1792736458000,
       "release": {
-        "tag": "v0.17.18-subscription-native",
-        "htmlUrl": "https://github.com/EricFL1998/dsh-subscription-oauth/releases/tag/v0.17.18-subscription-native",
-        "publishedAt": 1792641040000,
+        "tag": "v0.17.19-subscription-native",
+        "htmlUrl": "https://github.com/EricFL1998/dsh-subscription-oauth/releases/tag/v0.17.19-subscription-native",
+        "publishedAt": 1792736459000,
         "apks": [
           {
-            "name": "dsh-plugin-subscription-oauth-companion-0.17.18.apk",
-            "url": "https://github.com/EricFL1998/dsh-subscription-oauth/releases/download/v0.17.18-subscription-native/dsh-plugin-subscription-oauth-companion-0.17.18.apk",
-            "sizeBytes": 951587
+            "name": "dsh-plugin-subscription-oauth-companion-0.17.19.apk",
+            "url": "https://github.com/EricFL1998/dsh-subscription-oauth/releases/download/v0.17.19-subscription-native/dsh-plugin-subscription-oauth-companion-0.17.19.apk",
+            "sizeBytes": 952203
           }
         ]
       }
