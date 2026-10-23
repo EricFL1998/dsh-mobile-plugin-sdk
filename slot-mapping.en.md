@@ -17,6 +17,7 @@
 | `SETTINGS_PROVIDER_CARD` | Settings → Models provider card extension area | `SettingsModelsPane.kt` |
 | `SIDEBAR_PANEL` | Left navigation drawer panel | `MainActivity.kt` |
 | `RIGHT_PANEL` | Chat right sidebar (fullscreen below 768px); contributions with `tabTitle` become tabs | `RightSidebarPanel.kt` / `NativeRightPaneTabs.kt` |
+| `RIGHT_PANEL_GUIDE_ENTRY` | Entry capsule on the right drawer's guide page; contributions with `guideTitle` / `guideDescription` append to the capsule list | `RightSidebarPanel.kt` / `NativeRightPaneTabs.kt` |
 | `COMPOSER_DOCK` | Above the input card (dock pills / status bar) | `ChatScreen.kt` |
 | `COMPOSER_LEFT` | Left side of the input bar (next to the plus button) | `ChatScreen.kt` |
 | `COMPOSER_RIGHT` | Right side of the input bar (send/stop button) | `ChatScreen.kt` |
@@ -65,6 +66,7 @@
 | `sidebar.right.pane.tab` | `RIGHT_PANEL` | Wired (plugin tabs; built-in tabs are app-owned) |
 | `sidebar.right.pane.tab.title` | `RIGHT_PANEL` | Wired (title comes from `tabTitle`) |
 | `rightbar.session` | `RIGHT_PANEL` | Wired |
+| `sidebar.right.tab.guide.entry` | `RIGHT_PANEL_GUIDE_ENTRY` | Wired (capsule entry, renders the contribution) |
 | `shell.overlay` | `PLUGIN_OVERLAY` | Wired |
 | `settings.section` | `SETTINGS_SHEET` | Wired |
 | `settings.general.item` | `SETTINGS_SHEET` | Wired |
