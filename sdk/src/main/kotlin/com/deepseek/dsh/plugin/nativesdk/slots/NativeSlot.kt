@@ -45,6 +45,15 @@ enum class NativeSlot {
      */
     RIGHT_PANEL,
 
+    /**
+     * 右侧栏 guide（开始页）的入口胶囊。对应官方 `sidebar.right.tab.guide.entry`。
+     *
+     * 插件在这一落点注册贡献并设置 [SlotContribution.guideTitle]，App 会在
+     * 右侧栏开始页的胶囊列表里追加一枚入口（[SlotContribution.guideDescription]
+     * 作为说明）；点开后渲染该贡献的 [Render]，与 [RIGHT_PANEL] 的标签行为一致。
+     */
+    RIGHT_PANEL_GUIDE_ENTRY,
+
     /** 输入框顶栏 / 底部药丸栏。承载 conversation.composer.dock、conversation.input.dock。 */
     COMPOSER_DOCK,
 
@@ -146,6 +155,15 @@ abstract class SlotContribution {
      * 插件自行负责本地化（直接用当前语言返回字符串即可）。
      */
     open val tabTitle: String? = null
+
+    /**
+     * 右侧栏 guide 入口标题。只对 [NativeSlot.RIGHT_PANEL_GUIDE_ENTRY] 有意义：
+     * 非 null 时 App 在开始页的胶囊列表追加这一项，点击后渲染本贡献的 [Render]。
+     */
+    open val guideTitle: String? = null
+
+    /** guide 入口说明（可选，显示在标题下方）。 */
+    open val guideDescription: String? = null
 
     /** 渲染这段内容。 */
     @Composable

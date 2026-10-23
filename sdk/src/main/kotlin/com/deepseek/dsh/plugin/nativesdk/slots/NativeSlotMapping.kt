@@ -48,6 +48,7 @@ object NativeSlotMapping {
         "sidebar.right.pane.tab" to NativeSlot.RIGHT_PANEL,
         "sidebar.right.pane.tab.title" to NativeSlot.RIGHT_PANEL,
         "rightbar.session" to NativeSlot.RIGHT_PANEL,
+        "sidebar.right.tab.guide.entry" to NativeSlot.RIGHT_PANEL_GUIDE_ENTRY,
 
         // 顶层与设置
         "shell.overlay" to NativeSlot.PLUGIN_OVERLAY,
