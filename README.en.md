@@ -1,3 +1,28 @@
+<p align="center">
+  <a href="https://ericfl1998.github.io/dsh-mobile-plugin-sdk/">
+    <img src="https://ericfl1998.github.io/dsh-mobile-plugin-sdk/assets/banner-sdk.svg" alt="DSH Native UI SDK — Kotlin + Compose companion UI for DSH plugins" width="900">
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://ericfl1998.github.io/dsh-mobile-plugin-sdk/"><strong>Online docs</strong></a>
+  &nbsp;·&nbsp;
+  <a href="https://ericfl1998.github.io/deepseek-harness-mobile/en.html"><strong>DSH Mobile product page</strong></a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/EricFL1998/deepseek-harness-mobile/releases/latest"><strong>Download the app</strong></a>
+  &nbsp;·&nbsp;
+  <a href="demo/README.md"><strong>Demo plugin</strong></a>
+</p>
+
+## Quick start (30 seconds)
+
+1. Drop [`artifacts/dsh-native-ui-sdk-release.aar`](artifacts/dsh-native-ui-sdk-release.aar) into the companion APK's `libs/`.
+2. Add the AAR and Compose to `build.gradle.kts` (see [§2 Adding the dependency](#2-adding-the-dependency)).
+3. Declare `dsh.plugin.id` / `dsh.plugin.jsPackage` / `apiVersion` / `minAppVersion` in the manifest.
+4. Extend `SlotContribution` or `PageContent` to register UI; fetch data through `PluginRpcHost` RPC.
+
+Business logic stays in the Host; native code only renders and forwards user intent.
+
 > English | [中文](README.md)
 
 # DSH Mobile Native UI SDK
